@@ -64,7 +64,7 @@ An adversary prevents the operator from heartbeating, hoping the staircase runs 
 ## Residual risks / out of scope (documented, not built)
 - **Lost-key / social recovery** — production hardening; the guardian could hold key-rotation authority. Intentionally **not built** here (it is the riskiest surface and out of scope). Until built, a truly lost owner key means the staircase is the only recovery path.
 - **Malicious owner** — the owner is trusted for their own funds by definition; Ephor is continuity, not custody-against-the-owner. (The reserve is nonetheless protected from *accidental* owner withdrawal.)
-- **Token weirdness** — assumes standard 6-dec ERC-20s (USDC/EURC/USYC). Fee-on-transfer / rebasing tokens are out of scope.
+- **Token weirdness** — assumes standard 6-dec ERC-20s (USDC/EURC/USYC). Fee-on-transfer / rebasing tokens are out of scope. A recipient that *cannot receive* (issuer blocklist, reverting contract) is handled: the stage-3 settlement escrows their share to a `claimable` ledger (pull-over-push) rather than reverting the whole sweep.
 
 ## Test coverage of this model
 Every threat above maps to at least one test in `contracts/test/` (unit, fuzz, or the invariant suite in `test/invariant/`). See [SECURITY.md](SECURITY.md) for the invariant-to-code map.

@@ -35,7 +35,11 @@ contract EphorInvariants is EphorBase {
     // INV-4 split conservation (all distributable consumed once the sweep executes)
     function invariant_ConservationAfterSweep() public view {
         if (plan.swept()) {
-            assertEq(usdc.balanceOf(address(vault)), vault.payrollReserve(), "INV-4: distributable fully settled");
+            assertEq(
+                usdc.balanceOf(address(vault)),
+                vault.payrollReserve() + vault.totalClaimable(),
+                "INV-4: distributable fully settled"
+            );
             assertEq(vault.distributable(), 0);
         }
     }
@@ -52,8 +56,12 @@ contract EphorInvariants is EphorBase {
         assertFalse(handler.payrollFailedWhenFunded(), "INV-6: funded payroll never fails");
     }
 
-    // Solvency: the earmarked reserve is always fully backed by real tokens.
+    // Solvency: the earmarked reserve + escrowed claims are always fully backed by real tokens.
     function invariant_Solvency() public view {
-        assertGe(usdc.balanceOf(address(vault)), vault.payrollReserve(), "reserve fully backed");
+        assertGe(
+            usdc.balanceOf(address(vault)),
+            vault.payrollReserve() + vault.totalClaimable(),
+            "reserve + claims fully backed"
+        );
     }
 }

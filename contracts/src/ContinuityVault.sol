@@ -70,6 +70,11 @@ contract ContinuityVault is Ownable, ReentrancyGuard {
 
     bool public configLocked;
 
+    // Pull-over-push escrow for the terminal settlement (M-1): a recipient that cannot receive
+    // (e.g. a token blocklist) is credited here instead of bricking the whole sweep.
+    mapping(address => uint256) public claimable;
+    uint256 public totalClaimable;
+
     // ── events ──
     event PlanLinked(address indexed plan);
     event Deposited(address indexed from, uint256 amount);
@@ -85,6 +90,8 @@ contract ContinuityVault is Ownable, ReentrancyGuard {
     event Split(address indexed recipient, uint256 amount, bool reserveTopUp);
     event ContinuitySettlementExecuted(uint256 distributable, uint64 atBlock);
     event OwnerWithdraw(address indexed token, address indexed to, uint256 amount);
+    event SettlementEscrowed(address indexed recipient, uint256 amount);
+    event Claimed(address indexed recipient, uint256 amount);
 
     // ── errors ──
     error ZeroAddress();
@@ -104,6 +111,7 @@ contract ContinuityVault is Ownable, ReentrancyGuard {
     error ExceedsDistributable();
     error InvalidSplits(uint256 totalBps);
     error EmptyConfig();
+    error NothingToClaim();
 
     constructor(address owner_, IERC20 payrollAsset_, uint64 payrollPeriodBlocks_, uint64 dailyWindowBlocks_)
         Ownable(owner_)
@@ -227,7 +235,8 @@ contract ContinuityVault is Ownable, ReentrancyGuard {
     function successorPay(address payee, uint256 amount) external nonReentrant {
         uint256 idxPlus1 = successorIndexPlus1[msg.sender];
         if (idxPlus1 == 0) revert NotSuccessor();
-        if (uint8(plan.stage()) < uint8(Stage.Handover)) revert HandoverNotActive();
+        // Stage 2 ONLY: the capped role opens at Handover and closes once the sweep window opens.
+        if (plan.stage() != Stage.Handover) revert HandoverNotActive();
         if (plan.frozen()) revert IsFrozen();
         if (!allowlistedPayee[payee]) revert PayeeNotAllowlisted();
 
@@ -243,9 +252,11 @@ contract ContinuityVault is Ownable, ReentrancyGuard {
         uint256 newSpent = spent + amount;
         if (newSpent > s.dailyCap) revert DailyCapExceeded();
 
-        // A successor spends operating funds only — never the earmarked payroll reserve.
-        // This is what makes payroll continuity (INV-6) hold under a hostile successor.
-        if (payrollAsset.balanceOf(address(this)) < payrollReserve + amount) revert ExceedsDistributable();
+        // A successor spends operating funds only — never the earmarked payroll reserve or
+        // escrowed settlement claims. This is what makes payroll continuity (INV-6) hold.
+        if (payrollAsset.balanceOf(address(this)) < payrollReserve + totalClaimable + amount) {
+            revert ExceedsDistributable();
+        }
 
         spentInWindow[msg.sender] = newSpent; // effect before interaction
         payrollAsset.safeTransfer(payee, amount);
@@ -259,8 +270,7 @@ contract ContinuityVault is Ownable, ReentrancyGuard {
         if (msg.sender != address(plan)) revert NotPlan();
         if (!configLocked) revert ConfigNotLocked();
 
-        uint256 bal = payrollAsset.balanceOf(address(this));
-        uint256 dist = bal > payrollReserve ? bal - payrollReserve : 0;
+        uint256 dist = distributable();
         emit ContinuitySettlementExecuted(dist, uint64(block.number));
         if (dist == 0) return;
 
@@ -275,8 +285,7 @@ contract ContinuityVault is Ownable, ReentrancyGuard {
                 : (dist * successors[i].splitBps) / BPS_DENOMINATOR;
             distributed += amount;
             if (amount > 0) {
-                payrollAsset.safeTransfer(successors[i].wallet, amount);
-                emit Split(successors[i].wallet, amount, false);
+                _deliver(successors[i].wallet, amount);
             }
         }
 
@@ -293,18 +302,45 @@ contract ContinuityVault is Ownable, ReentrancyGuard {
                 payrollReserve += amount;
                 emit Split(address(this), amount, true);
             } else {
-                payrollAsset.safeTransfer(allocations[i].recipient, amount);
-                emit Split(allocations[i].recipient, amount, false);
+                _deliver(allocations[i].recipient, amount);
             }
         }
     }
 
+    // ── settlement escrow (pull-over-push) ──
+    /// @dev Try to push; on failure (e.g. a blocklisted recipient) escrow to a claimable ledger
+    ///      so one bad recipient can never brick the whole settlement (M-1).
+    function _deliver(address to, uint256 amount) internal {
+        (bool success, bytes memory data) =
+            address(payrollAsset).call(abi.encodeWithSelector(IERC20.transfer.selector, to, amount));
+        if (success && (data.length == 0 || abi.decode(data, (bool)))) {
+            emit Split(to, amount, false);
+        } else {
+            claimable[to] += amount;
+            totalClaimable += amount;
+            emit SettlementEscrowed(to, amount);
+        }
+    }
+
+    /// @notice Recipients pull any escrowed settlement funds owed to them.
+    function claim() external nonReentrant {
+        uint256 amount = claimable[msg.sender];
+        if (amount == 0) revert NothingToClaim();
+        claimable[msg.sender] = 0;
+        totalClaimable -= amount;
+        payrollAsset.safeTransfer(msg.sender, amount);
+        emit Claimed(msg.sender, amount);
+    }
+
     // ── owner (supremacy over own funds) ──
-    /// @notice Owner may move any funds — except the earmarked payroll reserve, which stays
-    ///         protected for the team. To reclaim over-funded reserve, call `releaseReserve` first.
+    /// @notice Owner may move any funds — except the earmarked payroll reserve and escrowed
+    ///         claims, which stay protected. To reclaim over-funded reserve, call `releaseReserve`.
     function ownerWithdraw(IERC20 token, address to, uint256 amount) external onlyOwner nonReentrant {
         if (to == address(0)) revert ZeroAddress();
-        if (address(token) == address(payrollAsset) && payrollAsset.balanceOf(address(this)) < payrollReserve + amount) {
+        if (
+            address(token) == address(payrollAsset)
+                && payrollAsset.balanceOf(address(this)) < payrollReserve + totalClaimable + amount
+        ) {
             revert ExceedsDistributable();
         }
         token.safeTransfer(to, amount);
@@ -319,9 +355,10 @@ contract ContinuityVault is Ownable, ReentrancyGuard {
     }
 
     // ── views ──
-    function distributable() external view returns (uint256) {
+    function distributable() public view returns (uint256) {
         uint256 bal = payrollAsset.balanceOf(address(this));
-        return bal > payrollReserve ? bal - payrollReserve : 0;
+        uint256 locked = payrollReserve + totalClaimable;
+        return bal > locked ? bal - locked : 0;
     }
 
     function successorCount() external view returns (uint256) {

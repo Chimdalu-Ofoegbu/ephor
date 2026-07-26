@@ -27,5 +27,6 @@ interface IPlanFreezable {
 /// @notice The vault surface the plan invokes to execute the final settlement.
 interface IContinuityVault {
     function owner() external view returns (address);
+    function configLocked() external view returns (bool);
     function executeContinuitySettlement() external;
 }

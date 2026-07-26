@@ -6,7 +6,7 @@ Institution-grade by construction. This is a continuity mechanism, so correctnes
 - **CEI** — checks → effects → interactions in every state-changing function. E.g. `SuccessionPlan.advanceStage` sets `swept = true` before calling the vault; `ContinuityVault.runPayroll` decrements the reserve and advances `nextPayrollBlock` before transferring.
 - **Reentrancy** — `nonReentrant` (OpenZeppelin `ReentrancyGuard`) on every value-moving function in `ContinuityVault`.
 - **SafeERC20** — all token movement via `safeTransfer` / `safeTransferFrom`.
-- **Pull-over-push** — successors and beneficiaries pull/receive; payroll is a bounded push (`MAX_PAYROLL_BATCH = 10`).
+- **Pull-over-push** — the stage-3 settlement escrows to a `claimable` ledger and recipients `claim()`; a recipient that cannot receive (e.g. a token blocklist) is escrowed, never bricking the sweep. Payroll is a bounded push (`MAX_PAYROLL_BATCH = 10`) drawn from a pull-safe reserve.
 - **Custom errors** — no string reverts; every failure is a typed error.
 - **Events on every transition** — nothing happens silently (notice, handover, spend, split, sweep, cancel, freeze).
 - **6-dec accounting** — matches USDC/EURC/USYC base units.
@@ -32,6 +32,9 @@ Plus a **solvency** invariant: the vault balance always fully backs the earmarke
 - **73 tests**, all green: unit + fuzz + 7 stateful invariants (each 256 runs × 32 depth, 0 reverts, 0 violations).
 - **Coverage**: 98.7% lines, 97.2% functions, 92.8% statements (all three contracts ≥ 90% lines).
 - **Gas snapshots**: `contracts/.gas-snapshot`.
+
+## Independent adversarial review
+An adversarial contract review ([docs/REVIEW.md](REVIEW.md)) found **0 Critical, 1 High, 1 Medium, 4 Low, 3 Nit**, and verified all six invariants sound. Fixed same-day: **H-1** (guardian 2-of-3 was DoS-able by one bad guardian → now a true per-direction tally), **M-1** (push sweep could be bricked by one blocklisted recipient → now pull-over-push escrow), **L-1** (successor spend now Handover-only), **L-4** (succession can't arm before config is locked), and nits N-2/N-3. L-2/L-3/N-1 documented as accepted v1 trade-offs.
 
 ## Static analysis
 - **Slither**: scheduled for Phase 3 (Jul 27–Aug 2). Findings will be triaged here (clean-or-explained). *(Not yet run at CP2.)*

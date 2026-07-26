@@ -37,6 +37,10 @@ Date-stamped, newest first. Format: ✅ [what] — [files].
 - ✅ Keeper v1 skeleton — idempotent permissionless advance + payroll driver; runs the six scenarios headlessly (`pnpm --filter @ephor/keeper scenario`). — `apps/keeper/src/`
 - ✅ Docs — THREAT_MODEL (forced-silence + griefing + 10 threats), SECURITY (invariant→code map), METRICS (SaaS + 5bps), DX_FEEDBACK, BLOCKERS, CP2_SUBMISSION. — `docs/`, `BLOCKERS.md`
 
+**Adversarial review + same-day fixes**
+- ✅ Ran an independent adversarial contract review (GSD reviewer, session model) → `docs/REVIEW.md`: 0 Critical, 1 High, 1 Medium, 4 Low; all six invariants verified sound.
+- ✅ Fixed **H-1** (guardian 2-of-3 was DoS-able by one compromised guardian → true per-direction tally), **M-1** (push sweep could be bricked by one blocklisted recipient → pull-over-push escrow + `claim()`), **L-1** (successor spend Handover-only), **L-4** (can't arm succession before config locked), nits N-2/N-3. → **78 tests green, 98.8% line coverage**; conservation/solvency invariants updated for the escrow ledger.
+
 ### Open blockers / next
 - ⛔ **Deploy + verify (addresses)** blocked pending Circle Console credentials (`CIRCLE_API_KEY`, `CIRCLE_ENTITY_SECRET`) + a faucet-funded deployer key + confirmed `USDC_ADDRESS`/verifier — env vars only. Deploy script is written and compiles; see BLOCKERS.md. Everything else is complete and tested offline.
 - 📋 **Phase 2–3 (next):** stage-3 multi-leg executor (App Kit Swap + CCTP v2 + USYC park), `LiveEphorProvider` live reads, Slither, scenario drivers 5× clean.

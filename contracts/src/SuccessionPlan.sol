@@ -46,6 +46,7 @@ contract SuccessionPlan is Ownable {
     // ── errors ──
     error VaultAlreadySet();
     error VaultNotSet();
+    error VaultNotReady();
     error ZeroAddress();
     error NotGuardian();
     error IsFrozen();
@@ -84,19 +85,15 @@ contract SuccessionPlan is Ownable {
     /// @notice "I'm here." Refreshes the window and rewinds any active stage to Active
     ///         (unless the final sweep already executed). The owner's live key always wins.
     function heartbeat() external onlyOwner {
-        if (swept) revert AlreadySwept();
-        Stage from = stage;
-        lastHeartbeatBlock = uint64(block.number);
-        if (from != Stage.Active) {
-            stage = Stage.Active;
-            stageEnteredBlock = 0;
-            emit SuccessionCancelled(from, uint64(block.number));
-        }
-        emit Heartbeat(owner(), uint64(block.number), uint64(block.number) + windowBlocks);
+        _heartbeat();
     }
 
     /// @notice Explicit alias for the UI's master CANCEL action.
     function cancel() external onlyOwner {
+        _heartbeat();
+    }
+
+    function _heartbeat() internal {
         if (swept) revert AlreadySwept();
         Stage from = stage;
         lastHeartbeatBlock = uint64(block.number);
@@ -121,13 +118,16 @@ contract SuccessionPlan is Ownable {
         Stage from = stage;
         if (from == Stage.Active) {
             if (block.number <= uint256(lastHeartbeatBlock) + windowBlocks) revert WindowNotLapsed();
-            _enter(Stage.Notice);
+            // Don't arm succession before the vault's policy is finalized — otherwise the
+            // terminal sweep would revert ConfigNotLocked and dead-end (L-4).
+            if (!vault.configLocked()) revert VaultNotReady();
+            _enter(Stage.Notice, Stage.Active);
         } else if (from == Stage.Notice) {
             if (block.number < uint256(stageEnteredBlock) + challengeBlocks[0]) revert WindowNotLapsed();
-            _enter(Stage.Handover);
+            _enter(Stage.Handover, Stage.Notice);
         } else if (from == Stage.Handover) {
             if (block.number < uint256(stageEnteredBlock) + challengeBlocks[1]) revert WindowNotLapsed();
-            _enter(Stage.Sweep);
+            _enter(Stage.Sweep, Stage.Handover);
         } else {
             // from == Sweep, not yet settled: final challenge window, then the terminal sweep.
             if (block.number < uint256(stageEnteredBlock) + challengeBlocks[2]) revert WindowNotLapsed();
@@ -137,11 +137,10 @@ contract SuccessionPlan is Ownable {
         }
     }
 
-    function _enter(Stage to) internal {
+    function _enter(Stage to, Stage from) internal {
         stage = to;
         stageEnteredBlock = uint64(block.number);
-        // advancement is always sequential, so `from` is exactly the predecessor
-        emit StageAdvanced(Stage(uint8(to) - 1), to, uint64(block.number));
+        emit StageAdvanced(from, to, uint64(block.number));
     }
 
     // ── guardian veto ──

@@ -118,4 +118,56 @@ contract EphorExtrasTest is EphorBase {
         vm.expectRevert(ContinuityVault.PlanAlreadySet.selector);
         vault.setPlan(address(plan));
     }
+
+    // ── M-1: pull-over-push escrow (one bad recipient can't brick the sweep) ──
+
+    function test_Sweep_NotBrickedByBlockedRecipient() public {
+        usdc.setBlocked(s2, true); // a split recipient becomes unable to receive (USDC-style blocklist)
+        _executeSweep(); // must NOT revert
+
+        // s1 paid directly (30% + 15% = 117k); s2's 78k is escrowed, not lost, not bricking the sweep
+        assertEq(usdc.balanceOf(s1), u(117_000));
+        assertEq(usdc.balanceOf(s2), 0);
+        assertEq(vault.claimable(s2), u(78_000));
+        assertEq(vault.totalClaimable(), u(78_000));
+
+        // once unblocked, s2 pulls its escrowed funds
+        usdc.setBlocked(s2, false);
+        vm.prank(s2);
+        vault.claim();
+        assertEq(usdc.balanceOf(s2), u(78_000));
+        assertEq(vault.claimable(s2), 0);
+        assertEq(vault.totalClaimable(), 0);
+    }
+
+    function test_Claim_RevertsWhenNothingOwed() public {
+        vm.prank(s1);
+        vm.expectRevert(ContinuityVault.NothingToClaim.selector);
+        vault.claim();
+    }
+
+    // ── L-1: the capped successor role closes once the sweep window opens ──
+
+    function test_SuccessorPay_ClosedInSweepStage() public {
+        _advanceToSweepEntered(); // stage == Sweep, not yet settled
+        vm.prank(s1);
+        vm.expectRevert(ContinuityVault.HandoverNotActive.selector);
+        vault.successorPay(vendor, u(1_000));
+    }
+
+    // ── L-4: succession can't be armed before the vault policy is finalized ──
+
+    function test_Advance_RevertsIfConfigNotLocked() public {
+        MockERC20 t = new MockERC20("USD Coin", "USDC", 6);
+        uint64[3] memory ch = [C1, C2, C3];
+        SuccessionPlan p = new SuccessionPlan(owner, WINDOW, ch);
+        ContinuityVault v = new ContinuityVault(owner, t, PERIOD, DAILY_WINDOW);
+        vm.startPrank(owner);
+        p.setVault(address(v));
+        v.setPlan(address(p));
+        vm.stopPrank();
+        vm.roll(block.number + WINDOW + 1);
+        vm.expectRevert(SuccessionPlan.VaultNotReady.selector);
+        p.advanceStage();
+    }
 }

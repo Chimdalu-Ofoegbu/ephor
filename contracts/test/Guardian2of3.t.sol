@@ -20,7 +20,7 @@ contract Guardian2of3Test is EphorBase {
         vm.prank(g1);
         guardian.vote(true);
         assertFalse(plan.frozen());
-        assertEq(guardian.voteCount(0), 1);
+        assertEq(guardian.directionVotes(0, true), 1);
         assertEq(guardian.round(), 0);
     }
 
@@ -41,19 +41,35 @@ contract Guardian2of3Test is EphorBase {
         assertTrue(plan.frozen());
     }
 
-    function test_ConflictingVote_Reverts() public {
+    /// H-1: a first-mover or dissenting vote must NOT block the majority.
+    function test_DissentDoesNotBlockMajority() public {
+        vm.prank(g1);
+        guardian.vote(false); // front-run with the opposite direction
+        vm.prank(g2);
+        guardian.vote(true);
+        vm.prank(g3);
+        guardian.vote(true); // two concordant freeze votes win regardless of g1
+        assertTrue(plan.frozen());
+        assertEq(guardian.directionVotes(0, true), 2);
+        assertEq(guardian.directionVotes(0, false), 1);
+    }
+
+    /// H-1: one compromised guardian cannot DoS the freeze during a duress event.
+    function test_CompromisedGuardianCannotBlockFreeze() public {
+        vm.prank(g3);
+        guardian.vote(false); // compromised guardian spams "unfreeze"
         vm.prank(g1);
         guardian.vote(true);
         vm.prank(g2);
-        vm.expectRevert(Guardian2of3.ConflictingVote.selector);
-        guardian.vote(false);
+        guardian.vote(true);
+        assertTrue(plan.frozen());
     }
 
-    function test_AlreadyConfirmed_Reverts() public {
+    function test_AlreadyVoted_Reverts() public {
         vm.startPrank(g1);
         guardian.vote(true);
-        vm.expectRevert(Guardian2of3.AlreadyConfirmed.selector);
-        guardian.vote(true);
+        vm.expectRevert(Guardian2of3.AlreadyVoted.selector);
+        guardian.vote(false); // same guardian cannot vote twice, even in the other direction
         vm.stopPrank();
     }
 

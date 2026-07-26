@@ -25,17 +25,16 @@ contract Guardian2of3 {
 
     /// @dev Increments after each executed action; votes are per-round.
     uint256 public round;
-    mapping(uint256 => mapping(address => bool)) public confirmedInRound;
-    mapping(uint256 => uint8) public voteCount;
-    mapping(uint256 => bool) public desiredFreezeInRound;
-    mapping(uint256 => bool) public roundInitialized;
+    /// @dev round => guardian => has voted this round (single vote per round, either direction).
+    mapping(uint256 => mapping(address => bool)) public votedInRound;
+    /// @dev round => (freeze ? true : false) => tally. Directions are counted independently.
+    mapping(uint256 => mapping(bool => uint8)) public directionVotes;
 
     error NotGuardian();
     error DuplicateGuardian();
     error ZeroGuardian();
     error ZeroPlan();
-    error AlreadyConfirmed();
-    error ConflictingVote();
+    error AlreadyVoted();
 
     event GuardianVote(address indexed guardian, bool freeze, uint256 indexed round, uint8 votes);
     event GuardianActionExecuted(bool freeze, uint256 indexed round);
@@ -59,26 +58,20 @@ contract Guardian2of3 {
 
     /**
      * @notice Cast a guardian vote. `freeze = true` to engage the veto, `false` to lift it.
-     *         The second matching vote in the current round executes the action and
-     *         opens a fresh round.
+     *         Votes are tallied PER DIRECTION; whichever direction reaches the threshold first
+     *         executes and opens a fresh round. A dissenting or first-mover vote can never block
+     *         the majority — true 2-of-3, tolerating one compromised guardian (THREAT_MODEL T10).
      */
     function vote(bool freeze) external onlyGuardian {
         uint256 r = round;
-        if (confirmedInRound[r][msg.sender]) revert AlreadyConfirmed();
+        if (votedInRound[r][msg.sender]) revert AlreadyVoted();
+        votedInRound[r][msg.sender] = true;
 
-        if (!roundInitialized[r]) {
-            roundInitialized[r] = true;
-            desiredFreezeInRound[r] = freeze;
-        } else if (desiredFreezeInRound[r] != freeze) {
-            revert ConflictingVote();
-        }
+        uint8 tally = directionVotes[r][freeze] + 1;
+        directionVotes[r][freeze] = tally;
+        emit GuardianVote(msg.sender, freeze, r, tally);
 
-        confirmedInRound[r][msg.sender] = true;
-        uint8 votes = voteCount[r] + 1;
-        voteCount[r] = votes;
-        emit GuardianVote(msg.sender, freeze, r, votes);
-
-        if (votes >= THRESHOLD) {
+        if (tally >= THRESHOLD) {
             round = r + 1; // effect before interaction (CEI)
             emit GuardianActionExecuted(freeze, r);
             if (freeze) {
