@@ -1,0 +1,12 @@
+#!/bin/sh
+# Ephor: hard gate. Block ANY push whose local history contains a commit that
+# credits Claude/Anthropic as co-author or as a generating tool. This catches
+# even commits made with `git commit --no-verify` (which skips commit-msg).
+if git log --format='%B' HEAD 2>/dev/null | grep -iqE 'co-authored-by:.*(claude|anthropic)|generated with.*claude'; then
+  echo "" >&2
+  echo "ERROR: pre-push blocked — a commit in history credits Claude/Anthropic." >&2
+  echo "Strip the offending trailer (git filter-repo / rebase) before pushing." >&2
+  echo "" >&2
+  exit 1
+fi
+exit 0

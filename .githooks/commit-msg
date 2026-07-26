@@ -1,0 +1,9 @@
+#!/bin/sh
+# Ephor: strip any AI co-author / tool-generated trailers so no bot is ever
+# credited as a contributor. Runs on every `git commit` that does NOT pass
+# --no-verify. A pre-push hook is the hard backstop for --no-verify commits.
+msg_file="$1"
+tmp="$msg_file.gsdclean"
+grep -viE '(^[[:space:]]*co-authored-by:.*(claude|anthropic))|(generated with.*claude)|(^[[:space:]]*🤖)' "$msg_file" > "$tmp"
+mv "$tmp" "$msg_file"
+exit 0

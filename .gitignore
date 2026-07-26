@@ -1,0 +1,42 @@
+# --- Secrets (NEVER commit) ---
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets.json
+
+# --- Node / pnpm ---
+node_modules/
+dist/
+build/
+.next/
+out-tsc/
+*.tsbuildinfo
+.pnpm-store/
+
+# --- Foundry ---
+contracts/out/
+contracts/cache/
+contracts/broadcast/**/dry-run/
+**/out/
+**/cache/
+# keep verified deployment records under scripts/deployments/
+
+# --- Keeper / indexer ---
+apps/keeper/data/
+*.sqlite
+*.sqlite3
+*.db
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# --- Coverage ---
+lcov.info
+coverage/
