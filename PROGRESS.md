@@ -28,7 +28,16 @@ Date-stamped, newest first. Format: ✅ [what] — [files].
 **README + positioning**
 - ✅ README with "continuity not probate" framing, Mermaid staircase, named invariants, status table, quickstart. — `README.md`
 
+**Phase 1 — Continuity Core & Invariant Suite (CP2 core)**
+- ✅ `SuccessionPlan` — monotonic, cancellable, block-count stage machine; heartbeat registry; owner-supremacy; guardian-freezable; permissionless advance. — `contracts/src/SuccessionPlan.sol`
+- ✅ `ContinuityVault` — funds, capped successor spend (per-tx + rolling daily + allowlist), payroll reserve + bounded pulls, exact-conservation stage-3 split executor, **reserve protected** from successor/owner drains, owner supremacy over own funds. — `contracts/src/ContinuityVault.sol`
+- ✅ `Guardian2of3` — round-scoped 2-of-3 veto (freeze/unfreeze) as the duress brake. — `contracts/src/Guardian2of3.sol`
+- ✅ **73 Foundry tests** (unit + fuzz + **7 invariants for all six named invariants**; 256×32, 0 reverts/violations); **98.7% line coverage**; gas snapshot committed. — `contracts/test/`, `.gas-snapshot`
+- ✅ Deploy + SeedDemo forge scripts (compile; ready for credentials). — `contracts/script/`
+- ✅ Keeper v1 skeleton — idempotent permissionless advance + payroll driver; runs the six scenarios headlessly (`pnpm --filter @ephor/keeper scenario`). — `apps/keeper/src/`
+- ✅ Docs — THREAT_MODEL (forced-silence + griefing + 10 threats), SECURITY (invariant→code map), METRICS (SaaS + 5bps), DX_FEEDBACK, BLOCKERS, CP2_SUBMISSION. — `docs/`, `BLOCKERS.md`
+
 ### Open blockers / next
-- ⛔ **Deploy + verify (addresses)** blocked pending Circle Console credentials (`CIRCLE_API_KEY`, `CIRCLE_ENTITY_SECRET`) + a faucet-funded deployer key — env vars only. Everything non-deploy proceeds.
-- 🚧 **Phase 1 (next):** implement `SuccessionPlan` (stage machine) → `ContinuityVault` (funds, caps, payroll) → `Guardian2of3`, then the Foundry unit + fuzz + invariant suite for all six named invariants (≥ 35 tests, ≥ 90% coverage, gas snapshots).
-- 📋 UI HANDOFF GATE not yet reached — no `apps/web` touch until Ben confirms the design handoff.
+- ⛔ **Deploy + verify (addresses)** blocked pending Circle Console credentials (`CIRCLE_API_KEY`, `CIRCLE_ENTITY_SECRET`) + a faucet-funded deployer key + confirmed `USDC_ADDRESS`/verifier — env vars only. Deploy script is written and compiles; see BLOCKERS.md. Everything else is complete and tested offline.
+- 📋 **Phase 2–3 (next):** stage-3 multi-leg executor (App Kit Swap + CCTP v2 + USYC park), `LiveEphorProvider` live reads, Slither, scenario drivers 5× clean.
+- 📋 **UI HANDOFF GATE** not yet reached — no `apps/web` touch until Ben confirms the design handoff.

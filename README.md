@@ -71,9 +71,10 @@ docs/                 THREAT_MODEL, SECURITY, METRICS, CP2_SUBMISSION, INTEGRATI
 | Repo + GSD planning spine (PROJECT / ROADMAP / STATE / REQUIREMENTS) | ✅ |
 | Monorepo scaffold (pnpm + Foundry + OpenZeppelin) | ✅ |
 | **Phase 0** — `EphorProvider` interface + domain types + **six scenarios** (typechecks; unblocks design) | ✅ |
-| **Phase 1** — `ContinuityVault` · `SuccessionPlan` · `Guardian2of3` + invariant suite | 🚧 in progress |
+| **Phase 1** — `ContinuityVault` · `SuccessionPlan` · `Guardian2of3` + **73 tests / 6 invariants / 98.7% line cov** | ✅ |
+| Keeper v1 skeleton (idempotent advance + payroll; runs six scenarios headlessly) | ✅ |
 | Deploy + verify on Arc testnet (addresses below) | ⛔ needs Circle Console credentials (see Deployment) |
-| Keeper v1 · stage-3 multi-leg executor · live provider | 📋 Phase 2–3 |
+| Stage-3 multi-leg executor (Swap · CCTP · USYC) · live provider · Slither | 📋 Phase 2–3 |
 
 See [`PROGRESS.md`](PROGRESS.md) for the date-stamped log and [`.planning/ROADMAP.md`](.planning/ROADMAP.md) for the full plan.
 

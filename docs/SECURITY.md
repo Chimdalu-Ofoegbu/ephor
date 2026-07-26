@@ -1,0 +1,42 @@
+# Ephor — Security Posture
+
+Institution-grade by construction. This is a continuity mechanism, so correctness beats cleverness everywhere.
+
+## Contract security controls
+- **CEI** — checks → effects → interactions in every state-changing function. E.g. `SuccessionPlan.advanceStage` sets `swept = true` before calling the vault; `ContinuityVault.runPayroll` decrements the reserve and advances `nextPayrollBlock` before transferring.
+- **Reentrancy** — `nonReentrant` (OpenZeppelin `ReentrancyGuard`) on every value-moving function in `ContinuityVault`.
+- **SafeERC20** — all token movement via `safeTransfer` / `safeTransferFrom`.
+- **Pull-over-push** — successors and beneficiaries pull/receive; payroll is a bounded push (`MAX_PAYROLL_BATCH = 10`).
+- **Custom errors** — no string reverts; every failure is a typed error.
+- **Events on every transition** — nothing happens silently (notice, handover, spend, split, sweep, cancel, freeze).
+- **6-dec accounting** — matches USDC/EURC/USYC base units.
+- **Caps enforced in the vault**, never in the UI.
+- **No proxies** — immutable, non-upgradeable contracts. What you audit is what runs.
+- **Block-count windows** — never `block.timestamp` (Arc timestamps repeat).
+- **Reserve protection** — the earmarked payroll reserve cannot be spent by a successor or accidentally withdrawn by the owner (`ExceedsDistributable`); only payroll pulls and the terminal sweep touch it.
+
+## The six named invariants → code → tests
+
+| Invariant | Enforced in | Proven by |
+|---|---|---|
+| **INV-1 owner-supremacy** | `SuccessionPlan.heartbeat/cancel` reset stage to `Active` unless swept | `test_HeartbeatCancelsFrom*`, `testFuzz_OwnerSupremacyAnyOrdering`, `invariant_OwnerSupremacy` |
+| **INV-2 stage monotonicity** | `SuccessionPlan.advanceStage` (+1 only) | `test_FullSequenceMonotonic`, `invariant_StageMonotonicity`, `invariant_SweptImpliesSweepStage` |
+| **INV-3 no early execution** | window checks in `advanceStage` (block counts) | `test_AdvanceFromActive_RevertsBeforeWindow`, `testFuzz_NoEarlyExecution` |
+| **INV-4 split conservation** | `ContinuityVault.executeContinuitySettlement` + `lockConfig` (Σ bps == 10 000) | `test_Sweep_SplitConservationExact`, `testFuzz_SplitConservation`, `invariant_ConservationAfterSweep` |
+| **INV-5 cap safety** | `ContinuityVault.successorPay` (per-tx + rolling daily + allowlist) | `test_SuccessorPay_*`, `testFuzz_CapSafety`, `invariant_CapSafety` |
+| **INV-6 payroll continuity** | `ContinuityVault.runPayroll` (no stage/freeze gate) + reserve protection | `test_PayrollContinuity_*`, `invariant_PayrollContinuity` |
+
+Plus a **solvency** invariant: the vault balance always fully backs the earmarked reserve (`invariant_Solvency`).
+
+## Test summary
+- **73 tests**, all green: unit + fuzz + 7 stateful invariants (each 256 runs × 32 depth, 0 reverts, 0 violations).
+- **Coverage**: 98.7% lines, 97.2% functions, 92.8% statements (all three contracts ≥ 90% lines).
+- **Gas snapshots**: `contracts/.gas-snapshot`.
+
+## Static analysis
+- **Slither**: scheduled for Phase 3 (Jul 27–Aug 2). Findings will be triaged here (clean-or-explained). *(Not yet run at CP2.)*
+
+## Known limitations (see THREAT_MODEL.md)
+- Social recovery / lost-key rotation is documented but **not built**.
+- Assumes standard 6-dec ERC-20s; no fee-on-transfer / rebasing support.
+- Guardian key-rotation authority is described as production hardening, not implemented.

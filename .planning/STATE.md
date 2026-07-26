@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-07-26)
 
 ## Current Position
 
-Phase: 1 of 4 (Foundation & Provider Contract)
-Plan: 0 of 3 in current phase
-Status: Ready to plan
-Last activity: 2026-07-26 — Project bootstrapped (config, PROJECT/ROADMAP/STATE); git safety + co-author lockout verified; model_profile=inherit
+Phase: 2 of 4 (Continuity Core & Invariant Suite) — code complete, deploy credential-blocked
+Plan: 4 of 5 in current phase (deploy + verify pending credentials)
+Status: In progress
+Last activity: 2026-07-26 — 3 contracts + 73 tests (all 6 invariants, 98.7% line cov) green; keeper v1 skeleton; docs; repo public + pushed clean (no AI attribution)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████░░░░] ~55%
 
 ## Performance Metrics
 

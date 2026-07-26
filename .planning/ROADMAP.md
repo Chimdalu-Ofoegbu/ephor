@@ -98,7 +98,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Provider Contract | 0/3 | Not started | - |
-| 2. Continuity Core & Invariant Suite | 0/5 | Not started | - |
+| 1. Foundation & Provider Contract | 3/3 | Complete | 2026-07-26 |
+| 2. Continuity Core & Invariant Suite | 4/5 | In progress (deploy credential-blocked) | - |
 | 3. Settlement, Live Provider & Security | 0/4 | Not started | - |
 | 4. Harden & Submit | 0/3 | Not started | - |

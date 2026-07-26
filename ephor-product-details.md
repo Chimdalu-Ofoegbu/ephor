@@ -1,5 +1,3 @@
-# CP1 Registration — EPHOR (the chosen build)
-**Register before 12:59 PM WAT today (Mon Jul 20 = Sun Jul 19 AoE). Everything on the page stays editable; the deadline does not.**
 
 **Project Name:**
 ```
@@ -11,7 +9,6 @@ Ephor
 Ephor is a continuity vault for businesses whose treasury lives onchain, built on Arc — named for Sparta's elected overseers, who held bounded, term-limited power and kept the state running. The founder heartbeats periodically; if the pulse stops, a staged, cancellable settlement executes: onchain notice → capped operational handover to designated successors → policy-driven treasury actions — while payroll never misses a beat. One heartbeat from the returning owner rewinds everything. Banks freeze accounts when someone disappears; Ephor does the opposite. The state never stops. DeFi track.
 ```
 
-**Project Image:** upload `ephor-project-image.png` (1024×1024, in this folder).
 
 **Track selection (if asked):** DeFi.
 
@@ -28,7 +25,4 @@ Half-second deterministic blocks make succession windows precise and provable (b
 
 BY FINALS
 ContinuityVault + SuccessionPlan + guardian multisig deployed and verified on Arc testnet with invariant-tested owner-supremacy; the full staircase running unattended on compressed windows; the two demo money-shots live: the founder goes silent and payroll never misses a beat — then the founder returns, and one heartbeat rewinds everything.
-
-TEAM
-Ben (solo, Lagos), building with Claude Code. Sources of proof: trigger-conditioned settlement won at ETHGlobal New York 2025 (Noah) and ETHDam 2025 (Testament) — nobody has built it for businesses. The state never stops.
 ```
