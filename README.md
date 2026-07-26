@@ -21,13 +21,16 @@ Named for Sparta's five elected *ephors* — bounded, term-limited overseers cha
 
 ```mermaid
 flowchart TD
-    H["Heartbeat — owner is live<br/>payroll ticking"] -->|"heartbeat window lapses (blocks)"| S1
-    S1["Stage 1 · Notice<br/>challenge window A · nothing moves"] -->|"window A lapses"| S2
-    S2["Stage 2 · Handover<br/>successor gains a CAPPED role<br/>(≤ per-tx, ≤ daily, allowlisted)<br/>payroll keeps paying"] -->|"window B lapses"| S3
-    S3["Stage 3 · Sweep (final)<br/>splits → EURC swap → CCTP leg → USYC park<br/>a receipt per leg"]
-    S1 -.->|"owner heartbeat — rewind"| H
-    S2 -.->|"owner heartbeat — rewind"| H
-    H -.->|"heartbeat anytime — reset"| H
+    H["Heartbeat<br/>owner live · payroll ticking"]
+    S1["Stage 1 · Notice<br/>challenge window A · nothing moves"]
+    S2["Stage 2 · Handover<br/>successor gets a CAPPED role<br/>payroll keeps paying"]
+    S3["Stage 3 · Sweep · final<br/>splits → EURC swap → CCTP leg → USYC park<br/>a receipt per leg"]
+
+    H -->|window lapses| S1
+    S1 -->|window A lapses| S2
+    S2 -->|window B lapses| S3
+    S2 -.->|owner heartbeat rewinds any stage| H
+
     style H fill:#1f6f54,color:#ffffff
     style S2 fill:#8a5a00,color:#ffffff
     style S3 fill:#7a1f1f,color:#ffffff
