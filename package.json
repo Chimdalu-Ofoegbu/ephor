@@ -1,0 +1,27 @@
+{
+  "name": "ephor",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Ephor — business continuity as programmable settlement on Arc. The state never stops.",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r typecheck",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "contracts:build": "forge build --root contracts",
+    "contracts:test": "forge test --root contracts -vvv",
+    "contracts:snapshot": "forge snapshot --root contracts",
+    "contracts:coverage": "forge coverage --root contracts",
+    "keeper:dev": "pnpm --filter @ephor/keeper dev",
+    "scenario": "pnpm --filter @ephor/keeper scenario"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["better-sqlite3"]
+  }
+}

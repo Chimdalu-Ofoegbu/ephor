@@ -1,0 +1,27 @@
+{
+  "name": "@ephor/keeper",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Ephor keeper: watches windows, advances/executes stages idempotently, drives payroll ticks, mocks notifications, and indexes events to SQLite.",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "scenario": "tsx src/scenario-driver.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ephor/shared": "workspace:*",
+    "viem": "^2.21.55",
+    "node-cron": "^3.0.3",
+    "better-sqlite3": "^11.7.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.10.2",
+    "@types/node-cron": "^3.0.11",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

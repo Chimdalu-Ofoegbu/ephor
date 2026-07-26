@@ -1,0 +1,6 @@
+# Contracts live under contracts/ (Foundry, not a pnpm package) and are excluded here.
+# apps/web and packages/ui are owned by the separate Claude Design session; the globs
+# below include them automatically once that session creates them.
+packages:
+  - "packages/*"
+  - "apps/*"
