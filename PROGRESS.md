@@ -41,6 +41,9 @@ Date-stamped, newest first. Format: ✅ [what] — [files].
 - ✅ Ran an independent adversarial contract review (GSD reviewer, session model) → `docs/REVIEW.md`: 0 Critical, 1 High, 1 Medium, 4 Low; all six invariants verified sound.
 - ✅ Fixed **H-1** (guardian 2-of-3 was DoS-able by one compromised guardian → true per-direction tally), **M-1** (push sweep could be bricked by one blocklisted recipient → pull-over-push escrow + `claim()`), **L-1** (successor spend Handover-only), **L-4** (can't arm succession before config locked), nits N-2/N-3. → **78 tests green, 98.8% line coverage**; conservation/solvency invariants updated for the escrow ledger.
 
+**Phase 3 kickoff — end-to-end proof (contract level)**
+- ✅ End-to-end integration test (`contracts/test/integration/FullStaircase.t.sol`): the full unattended arc — payroll paid in **all four stages**, capped handover with an **on-chain over-cap revert**, and a **conservation-exact terminal sweep** — plus **owner-returns mid-handover** (capped role revoked instantly, payroll uninterrupted) and a sweep-edge rewind. This is the scripted, CI-able version of the two demo money-shots. → **81 tests green, 98.8% line coverage.**
+
 ### Open blockers / next
 - ⛔ **Deploy + verify (addresses)** blocked pending Circle Console credentials (`CIRCLE_API_KEY`, `CIRCLE_ENTITY_SECRET`) + a faucet-funded deployer key + confirmed `USDC_ADDRESS`/verifier — env vars only. Deploy script is written and compiles; see BLOCKERS.md. Everything else is complete and tested offline.
 - 📋 **Phase 2–3 (next):** stage-3 multi-leg executor (App Kit Swap + CCTP v2 + USYC park), `LiveEphorProvider` live reads, Slither, scenario drivers 5× clean.

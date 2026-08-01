@@ -35,7 +35,7 @@ The one finding that breaks a *documented* security guarantee is **H-1** (a sing
 | **L-3** global allowlist | 📋 Accepted | v1 treats successors as a shared operator set; per-successor allowlist is a Phase-3 hardening. |
 | **N-1** boundary `>` vs `>=` | 📋 Accepted | Internally consistent with `nextAdvanceBlock`; 1-block nominal difference only. |
 
-Post-fix: **78 tests green**, 98.8% line coverage; all six invariants hold (conservation/solvency updated for the escrow ledger).
+Post-fix: **81 tests green** (incl. the end-to-end staircase suite), 98.8% line coverage; all six invariants hold (conservation/solvency updated for the escrow ledger).
 
 ---
 

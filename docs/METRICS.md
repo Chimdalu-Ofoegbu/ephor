@@ -16,7 +16,7 @@ Why this is defensible: **no bank can offer this** — banks *freeze* accounts w
 | Guardian2of3 | ~2,300 |
 
 ## Test & coverage
-- 73 tests (unit + fuzz + 7 invariants), all green.
+- 81 tests (unit + fuzz + 7 stateful invariants + end-to-end staircase), all green.
 - Line coverage 98.7% / function coverage 97.2%.
 - Gas snapshots committed at `contracts/.gas-snapshot` (regenerate with `pnpm contracts:snapshot`).
 

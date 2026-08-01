@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-07-26)
 Phase: 2 of 4 (Continuity Core & Invariant Suite) — code complete, deploy credential-blocked
 Plan: 4 of 5 in current phase (deploy + verify pending credentials)
 Status: In progress
-Last activity: 2026-07-26 — 3 contracts + 73 tests (all 6 invariants, 98.7% line cov) green; keeper v1 skeleton; docs; repo public + pushed clean (no AI attribution)
+Last activity: 2026-07-26 — 3 contracts + adversarial-review fixes (H-1/M-1/L-1/L-4) + end-to-end staircase integration test; **81 tests (6 invariants + full-arc E2E), 98.8% line cov** green; keeper v1 + scenario driver; docs; repo public + pushed clean (no AI attribution)
 
 Progress: [██████░░░░] ~55%
 

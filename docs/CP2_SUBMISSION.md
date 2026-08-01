@@ -36,7 +36,7 @@ cd contracts && forge script script/Deploy.s.sol --rpc-url arc_testnet --broadca
 ```bash
 pnpm install
 pnpm --filter @ephor/shared typecheck   # provider + six scenarios
-pnpm contracts:test                      # 73 tests: unit + fuzz + 6 invariants
+pnpm contracts:test                      # 81 tests: unit + fuzz + 6 invariants + end-to-end
 pnpm contracts:coverage                  # ~98.7% lines
 pnpm --filter @ephor/keeper scenario     # prints the six demo beats
 ```

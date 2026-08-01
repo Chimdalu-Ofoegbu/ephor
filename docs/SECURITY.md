@@ -29,7 +29,7 @@ Institution-grade by construction. This is a continuity mechanism, so correctnes
 Plus a **solvency** invariant: the vault balance always fully backs the earmarked reserve (`invariant_Solvency`).
 
 ## Test summary
-- **73 tests**, all green: unit + fuzz + 7 stateful invariants (each 256 runs × 32 depth, 0 reverts, 0 violations).
+- **81 tests**, all green: unit + fuzz + 7 stateful invariants (each 256 runs × 32 depth, 0 reverts, 0 violations) + an end-to-end staircase suite.
 - **Coverage**: 98.7% lines, 97.2% functions, 92.8% statements (all three contracts ≥ 90% lines).
 - **Gas snapshots**: `contracts/.gas-snapshot`.
 
