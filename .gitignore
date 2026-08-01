@@ -40,3 +40,6 @@ Thumbs.db
 # --- Coverage ---
 lcov.info
 coverage/
+
+# --- Local branding assets (folder name signals: keep out of git) ---
+git_ignore_branding/
