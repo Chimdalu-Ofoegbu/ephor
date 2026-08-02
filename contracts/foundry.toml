@@ -40,5 +40,7 @@ depth = 64
 [rpc_endpoints]
 arc_testnet = "${ARC_RPC_URL}"
 
-[etherscan]
-arc_testnet = { key = "${ARC_ETHERSCAN_API_KEY}", url = "${ARC_VERIFIER_URL}", chain = 5042002 }
+# Re-enable when Arc exposes an Etherscan-compatible verifier and ARC_VERIFIER_URL is set.
+# An empty `url` here triggers forge's "relative URL without a base" error on --broadcast.
+# [etherscan]
+# arc_testnet = { key = "${ARC_ETHERSCAN_API_KEY}", url = "${ARC_VERIFIER_URL}", chain = 5042002 }

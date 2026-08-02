@@ -5,7 +5,7 @@ Scope discipline is a security control. Blockers, scope proposals, and deviation
 ## Open blockers
 
 ### BLOCKER-1 — Deployer wallet must be funded for on-chain addresses
-**Status:** OPEN — needs Ben (one faucet action).
+**Status:** RESOLVED 2026-08-02 — deployer funded (20 USDC); 3 contracts deployed + wired on Arc testnet (addresses in README). Only source-verification remains, pending Arc's verifier endpoint; bytecode + wiring confirmed on-chain via `cast code` / `cast call`.
 The acceptance criterion "3 contracts deployed + verified on Arc testnet; addresses in README" now needs only:
 - A faucet-funded `DEPLOYER_PRIVATE_KEY` (throwaway, testnet only) — from https://faucet.circle.com. USDC is the gas token on Arc, so the deployer needs a small USDC balance.
 - (Optional) `ARC_VERIFIER_URL` + `ARC_ETHERSCAN_API_KEY` if Arc exposes an Etherscan-compatible verifier — only for `--verify`; deploy works without it.

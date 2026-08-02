@@ -4,6 +4,12 @@ Date-stamped, newest first. Format: ✅ [what] — [files].
 
 ---
 
+## 2026-08-02 — Deployed to Arc testnet (3 contracts live + wired)
+
+- ✅ **SuccessionPlan `0x01FcB61253f8E0dE8f0455dDe6CBd36882ad3bf8`, ContinuityVault `0x9215fD038685e23c08f83b52137f95662DC33021`, Guardian2of3 `0x52e003799cCB3B0BFc8Bcd227112F1Ffe9bc506d`** deployed from `0x7dbF…Ac2C` (chain 5042002) and verified on-chain — bytecode present; `owner` + `plan`↔`vault` + `guardian` wiring + `stage=Active` confirmed via `cast call`. Deploy cost ≈0.2 USDC. — `contracts/deployments/arc-testnet.json`
+- ✅ Fixed the deploy blocker: an empty `[etherscan].url` caused forge's "relative URL without a base" on `--broadcast`; disabled that block (Arc verifier endpoint still TBD). — `contracts/foundry.toml`
+- 📋 Next: `SeedDemo.s.sol` to configure + fund the demo company (locks config); source-verify once Arc exposes an Etherscan-compatible verifier.
+
 ## 2026-08-02 — Deploy prep: Circle DCW → EOAs; USDC address confirmed
 
 - ✅ **Demo actors switched to plain EOAs (Option A).** Circle developer-controlled wallets dropped — the Entity Secret registration is one-shot and became unrecoverable after a failed recovery-file write (see DX_FEEDBACK.md). Contracts only ever see addresses, so this is functionally equivalent. New generator: `pnpm wallets:gen`. — `scripts/wallets/gen-actors.ts`, `scripts/package.json`, `.env.example`
@@ -51,6 +57,6 @@ Date-stamped, newest first. Format: ✅ [what] — [files].
 - ✅ End-to-end integration test (`contracts/test/integration/FullStaircase.t.sol`): the full unattended arc — payroll paid in **all four stages**, capped handover with an **on-chain over-cap revert**, and a **conservation-exact terminal sweep** — plus **owner-returns mid-handover** (capped role revoked instantly, payroll uninterrupted) and a sweep-edge rewind. This is the scripted, CI-able version of the two demo money-shots. → **81 tests green, 98.8% line coverage.**
 
 ### Open blockers / next
-- ⏳ **Deploy + verify (addresses)** needs only a faucet-funded deployer key — the `USDC_ADDRESS` is confirmed (`0x3600…0000`) and demo actors are plain EOAs (no Circle Console dependency). Deploy script is written and compiles; see BLOCKERS.md. Everything else is complete and tested offline.
+- ✅ **Deployed to Arc testnet** — SuccessionPlan `0x01Fc…3bf8`, ContinuityVault `0x9215…3021`, Guardian2of3 `0x52e0…506d`; live + wired (addresses in README/CP2). Source-verification pending Arc's verifier endpoint (bytecode confirmed on-chain).
 - 📋 **Phase 2–3 (next):** stage-3 multi-leg executor (App Kit Swap + CCTP v2 + USYC park), `LiveEphorProvider` live reads, Slither, scenario drivers 5× clean.
 - 📋 **UI HANDOFF GATE** not yet reached — no `apps/web` touch until Ben confirms the design handoff.

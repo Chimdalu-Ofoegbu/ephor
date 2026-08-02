@@ -76,7 +76,7 @@ docs/                 THREAT_MODEL, SECURITY, METRICS, CP2_SUBMISSION, INTEGRATI
 | **Phase 0** — `EphorProvider` interface + domain types + **six scenarios** (typechecks; unblocks design) | ✅ |
 | **Phase 1** — `ContinuityVault` · `SuccessionPlan` · `Guardian2of3` + **81 tests / 6 invariants + end-to-end arc / 98.8% line cov** | ✅ |
 | Keeper v1 skeleton (idempotent advance + payroll; runs six scenarios headlessly) | ✅ |
-| Deploy + verify on Arc testnet (addresses below) | ⏳ needs a faucet-funded deployer key (USDC address confirmed; see Deployment) |
+| Deploy on Arc testnet (addresses below) | ✅ **3 contracts live + wired** (source-verify pending Arc verifier) |
 | Stage-3 multi-leg executor (Swap · CCTP · USYC) · live provider · Slither | 📋 Phase 2–3 |
 
 See [`PROGRESS.md`](PROGRESS.md) for the date-stamped log and [`.planning/ROADMAP.md`](.planning/ROADMAP.md) for the full plan.
@@ -98,11 +98,11 @@ Copy `.env.example` → `.env` and fill in values before any deploy. **Testnet o
 
 | Contract | Address | Explorer |
 |---|---|---|
-| ContinuityVault | `TBD` | — |
-| SuccessionPlan | `TBD` | — |
-| Guardian2of3 | `TBD` | — |
+| ContinuityVault | `0x9215fD038685e23c08f83b52137f95662DC33021` | [view](https://testnet.arcscan.app/address/0x9215fD038685e23c08f83b52137f95662DC33021) |
+| SuccessionPlan | `0x01FcB61253f8E0dE8f0455dDe6CBd36882ad3bf8` | [view](https://testnet.arcscan.app/address/0x01FcB61253f8E0dE8f0455dDe6CBd36882ad3bf8) |
+| Guardian2of3 | `0x52e003799cCB3B0BFc8Bcd227112F1Ffe9bc506d` | [view](https://testnet.arcscan.app/address/0x52e003799cCB3B0BFc8Bcd227112F1Ffe9bc506d) |
 
-> Deployment needs only a faucet-funded `DEPLOYER_PRIVATE_KEY` (env var, testnet only) — the USDC address is confirmed (`0x3600…0000`, the native gas token's 6-dec ERC-20 view). Demo actors are plain EOAs (`pnpm wallets:gen`), so there is no Circle Console dependency. The deploy + verify scripts are wired; addresses land here once the deployer is funded. Chain **5042002** · RPC `https://rpc.testnet.arc.network` · explorer `https://testnet.arcscan.app` · faucet `https://faucet.circle.com`.
+> **Live on Arc testnet** (chain **5042002**), deployed from `0x7dbF…Ac2C` and verified on-chain: owner-wired, `plan`↔`vault` cross-linked, `Guardian2of3` (2-of-3) linked, stage = Active. Settlement asset is USDC `0x3600…0000` (native gas token + 6-dec ERC-20 view). RPC `https://rpc.testnet.arc.network` · explorer `https://testnet.arcscan.app` · faucet `https://faucet.circle.com`. Source-verification is pending Arc's verifier endpoint (bytecode is confirmed on-chain via `cast code`).
 
 ## Arc primitives used
 

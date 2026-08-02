@@ -23,13 +23,13 @@ Public: **https://github.com/Chimdalu-Ofoegbu/ephor** (this session builds the c
 
 | Contract | Address | Explorer |
 |---|---|---|
-| ContinuityVault | **pending deploy** | — |
-| SuccessionPlan | **pending deploy** | — |
-| Guardian2of3 | **pending deploy** | — |
+| ContinuityVault | `0x9215fD038685e23c08f83b52137f95662DC33021` | [view](https://testnet.arcscan.app/address/0x9215fD038685e23c08f83b52137f95662DC33021) |
+| SuccessionPlan | `0x01FcB61253f8E0dE8f0455dDe6CBd36882ad3bf8` | [view](https://testnet.arcscan.app/address/0x01FcB61253f8E0dE8f0455dDe6CBd36882ad3bf8) |
+| Guardian2of3 | `0x52e003799cCB3B0BFc8Bcd227112F1Ffe9bc506d` | [view](https://testnet.arcscan.app/address/0x52e003799cCB3B0BFc8Bcd227112F1Ffe9bc506d) |
 
-**Deployment is credential-blocked, not code-blocked** (see [BLOCKERS.md](../BLOCKERS.md#blocker-1)). The deploy + verify path is written and compiles; the USDC address is confirmed (`0x3600…0000`) and demo actors are plain EOAs, so it needs only a faucet-funded deployer key (env var). Once funded:
+**Deployed and wired on Arc testnet** (chain 5042002, from `0x7dbF…Ac2C`). Verified on-chain via `cast call`: `plan`↔`vault` cross-linked, `Guardian2of3` linked (2-of-3), owner = deployer, stage = Active, settlement asset = USDC `0x3600…0000`. Source-verification pending Arc's verifier endpoint. Reproduce with:
 ```bash
-cd contracts && forge script script/Deploy.s.sol --rpc-url arc_testnet --broadcast --verify
+cd contracts && forge script script/Deploy.s.sol --rpc-url arc_testnet --broadcast
 ```
 
 ## Verify the work now (no credentials needed)
