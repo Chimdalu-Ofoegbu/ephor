@@ -44,6 +44,8 @@ pnpm --filter @ephor/keeper scenario     # prints the six demo beats
 ## Named invariants — all proven
 INV-1 owner-supremacy · INV-2 stage monotonicity · INV-3 no early execution · INV-4 split conservation · INV-5 cap safety · INV-6 payroll continuity. Map to code + tests in [SECURITY.md](SECURITY.md).
 
+**Proven live on Arc (2026-08-03).** A full rewind-path run against the deployed vault exercised INV-1/2/3/5/6 on-chain: early-advance revert (WindowNotLapsed), staged Active→Notice→Handover advance, `runPayroll` paid mid-succession, a capped successor spend plus an over-cap rejection (PerTxCapExceeded), and a one-heartbeat rewind to Active. Reproduce with `bash scripts/run-demo-arc.sh`.
+
 ## The two money-shots (proven in tests; live at finals)
 1. **The founder goes silent — payroll never misses.** `test_PayrollContinuity_*` + `invariant_PayrollContinuity`.
 2. **The founder returns — one heartbeat rewinds the staircase.** `test_HeartbeatCancelsFrom*` + `testFuzz_OwnerSupremacyAnyOrdering` + `invariant_OwnerSupremacy`.

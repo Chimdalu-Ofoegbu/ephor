@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-07-26)
 ## Current Position
 
 Phase: 2 of 4 (Continuity Core & Invariant Suite) — deployed to Arc testnet
-Plan: 5 of 5 (deploy + verify) — deployed, wired, and SEEDED; source-verify pending Arc verifier
+Plan: 5 of 5 (deploy + verify) — deployed, wired, seeded, and PROVEN LIVE end-to-end; source-verify pending Arc verifier
 Status: In progress
-Last activity: 2026-08-02 — deployed + wired 3 contracts on Arc, then SEEDED the live vault (Helios Robotics demo: payroll + 2 capped successors + allocations, config locked, reserve 6 + distributable 4 USDC) via cast send; all state verified on-chain
+Last activity: 2026-08-03 — drove the full succession staircase live on Arc (rewind path): INV-3/2/6/5/1 all proven on-chain — early-advance revert, staged advance, payroll paid mid-succession, capped + over-cap-rejected successor spend, one-heartbeat rewind. Reusable driver: scripts/run-demo-arc.sh
 
-Progress: [███████░░░] ~70%
+Progress: [████████░░] ~78%
 
 ## Performance Metrics
 

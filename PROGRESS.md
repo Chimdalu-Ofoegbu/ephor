@@ -4,6 +4,10 @@ Date-stamped, newest first. Format: ✅ [what] — [files].
 
 ---
 
+## 2026-08-03 — Live succession proven end-to-end on Arc
+
+- ✅ **Full staircase driven live on the deployed vault** (rewind path), proving the invariants on-chain: INV-3 early `advanceStage` reverts (WindowNotLapsed) → INV-2 Active→Notice→Handover as each block window lapses → INV-6 `runPayroll` pays 1 USDC mid-succession (reserve 6→5) → INV-5 successor pays vendor 1.5 USDC (per-tx cap 2) and an over-cap 2.5 USDC spend reverts (PerTxCapExceeded) → INV-1 owner `heartbeat` rewinds Handover→Active in one call. Non-destructive; vault left healthy (reserve 5, distributable 2.5). One-command reusable driver for the recorded demo. — `scripts/run-demo-arc.sh`
+
 ## 2026-08-02 — Deployed to Arc testnet (3 contracts live + wired)
 
 - ✅ **SuccessionPlan `0x01FcB61253f8E0dE8f0455dDe6CBd36882ad3bf8`, ContinuityVault `0x9215fD038685e23c08f83b52137f95662DC33021`, Guardian2of3 `0x52e003799cCB3B0BFc8Bcd227112F1Ffe9bc506d`** deployed from `0x7dbF…Ac2C` (chain 5042002) and verified on-chain — bytecode present; `owner` + `plan`↔`vault` + `guardian` wiring + `stage=Active` confirmed via `cast call`. Deploy cost ≈0.2 USDC. — `contracts/deployments/arc-testnet.json`
