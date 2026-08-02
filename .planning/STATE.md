@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-07-26)
 ## Current Position
 
 Phase: 2 of 4 (Continuity Core & Invariant Suite) — deployed to Arc testnet
-Plan: 5 of 5 in current phase (deploy + verify) — deployed + wired; source-verify pending Arc verifier
+Plan: 5 of 5 (deploy + verify) — deployed, wired, and SEEDED; source-verify pending Arc verifier
 Status: In progress
-Last activity: 2026-08-02 — deployed 3 contracts to Arc testnet (SuccessionPlan 0x01Fc…3bf8, ContinuityVault 0x9215…3021, Guardian2of3 0x52e0…506d) from 0x7dbF…Ac2C; on-chain wiring verified (owner / plan↔vault / guardian / stage=Active)
+Last activity: 2026-08-02 — deployed + wired 3 contracts on Arc, then SEEDED the live vault (Helios Robotics demo: payroll + 2 capped successors + allocations, config locked, reserve 6 + distributable 4 USDC) via cast send; all state verified on-chain
 
-Progress: [███████░░░] ~65%
+Progress: [███████░░░] ~70%
 
 ## Performance Metrics
 

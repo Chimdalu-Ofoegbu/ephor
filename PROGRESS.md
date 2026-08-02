@@ -8,7 +8,8 @@ Date-stamped, newest first. Format: ✅ [what] — [files].
 
 - ✅ **SuccessionPlan `0x01FcB61253f8E0dE8f0455dDe6CBd36882ad3bf8`, ContinuityVault `0x9215fD038685e23c08f83b52137f95662DC33021`, Guardian2of3 `0x52e003799cCB3B0BFc8Bcd227112F1Ffe9bc506d`** deployed from `0x7dbF…Ac2C` (chain 5042002) and verified on-chain — bytecode present; `owner` + `plan`↔`vault` + `guardian` wiring + `stage=Active` confirmed via `cast call`. Deploy cost ≈0.2 USDC. — `contracts/deployments/arc-testnet.json`
 - ✅ Fixed the deploy blocker: an empty `[etherscan].url` caused forge's "relative URL without a base" on `--broadcast`; disabled that block (Arc verifier endpoint still TBD). — `contracts/foundry.toml`
-- 📋 Next: `SeedDemo.s.sol` to configure + fund the demo company (locks config); source-verify once Arc exposes an Etherscan-compatible verifier.
+- ✅ **Seeded the live vault** (demo company "Helios Robotics", testnet-scaled ~10 USDC): payroll (1 payee, 1 USDC/period), 2 capped successors (30% / 20%, per-tx + daily caps), 2 allocations (30% / 20%), config **locked** (splits = 100%), reserve 6 USDC + distributable 4 USDC funded. Verified on-chain. Sent via `cast send` — `forge script` can't simulate Arc's native USDC precompile (see DX_FEEDBACK). — `contracts/script/SeedDemo.s.sol`, `scripts/seed-arc.sh`
+- 📋 Next: run the live staircase end-to-end (heartbeat → advance → payroll-never-misses → sweep / owner-rewind); wire keeper `DATA_MODE=live`; source-verify once Arc exposes a verifier.
 
 ## 2026-08-02 — Deploy prep: Circle DCW → EOAs; USDC address confirmed
 
