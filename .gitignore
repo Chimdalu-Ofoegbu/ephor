@@ -21,7 +21,7 @@ contracts/cache/
 contracts/broadcast/**/dry-run/
 **/out/
 **/cache/
-# keep verified deployment records under scripts/deployments/
+# keep verified deployment records under contracts/deployments/
 
 # --- Keeper / indexer ---
 apps/keeper/data/
