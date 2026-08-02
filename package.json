@@ -16,12 +16,16 @@
     "contracts:snapshot": "forge snapshot --root contracts",
     "contracts:coverage": "forge coverage --root contracts",
     "keeper:dev": "pnpm --filter @ephor/keeper dev",
-    "scenario": "pnpm --filter @ephor/keeper scenario"
+    "scenario": "pnpm --filter @ephor/keeper scenario",
+    "circle:entity": "pnpm --filter @ephor/scripts register-entity-secret"
   },
   "devDependencies": {
     "typescript": "^5.7.2"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["better-sqlite3"]
-  }
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
+  },
+  "type": "module"
 }

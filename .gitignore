@@ -43,3 +43,6 @@ coverage/
 
 # --- Local branding assets (folder name signals: keep out of git) ---
 git_ignore_branding/
+
+# --- Circle entity-secret recovery file (KEEP PRIVATE — never commit) ---
+.circle-recovery/
