@@ -76,7 +76,7 @@ docs/                 THREAT_MODEL, SECURITY, METRICS, CP2_SUBMISSION, INTEGRATI
 | **Phase 0** — `EphorProvider` interface + domain types + **six scenarios** (typechecks; unblocks design) | ✅ |
 | **Phase 1** — `ContinuityVault` · `SuccessionPlan` · `Guardian2of3` + **81 tests / 6 invariants + end-to-end arc / 98.8% line cov** | ✅ |
 | Keeper v1 skeleton (idempotent advance + payroll; runs six scenarios headlessly) | ✅ |
-| Deploy + verify on Arc testnet (addresses below) | ⛔ needs Circle Console credentials (see Deployment) |
+| Deploy + verify on Arc testnet (addresses below) | ⏳ needs a faucet-funded deployer key (USDC address confirmed; see Deployment) |
 | Stage-3 multi-leg executor (Swap · CCTP · USYC) · live provider · Slither | 📋 Phase 2–3 |
 
 See [`PROGRESS.md`](PROGRESS.md) for the date-stamped log and [`.planning/ROADMAP.md`](.planning/ROADMAP.md) for the full plan.
@@ -102,7 +102,7 @@ Copy `.env.example` → `.env` and fill in values before any deploy. **Testnet o
 | SuccessionPlan | `TBD` | — |
 | Guardian2of3 | `TBD` | — |
 
-> Deployment requires Circle Console credentials (`CIRCLE_API_KEY`, `CIRCLE_ENTITY_SECRET`) and a faucet-funded `DEPLOYER_PRIVATE_KEY`, supplied via environment variables only. The deploy + verify scripts are wired; addresses land here once credentials are provided. Chain **5042002** · RPC `https://rpc.testnet.arc.network` · explorer `https://testnet.arcscan.app` · faucet `https://faucet.circle.com`.
+> Deployment needs only a faucet-funded `DEPLOYER_PRIVATE_KEY` (env var, testnet only) — the USDC address is confirmed (`0x3600…0000`, the native gas token's 6-dec ERC-20 view). Demo actors are plain EOAs (`pnpm wallets:gen`), so there is no Circle Console dependency. The deploy + verify scripts are wired; addresses land here once the deployer is funded. Chain **5042002** · RPC `https://rpc.testnet.arc.network` · explorer `https://testnet.arcscan.app` · faucet `https://faucet.circle.com`.
 
 ## Arc primitives used
 

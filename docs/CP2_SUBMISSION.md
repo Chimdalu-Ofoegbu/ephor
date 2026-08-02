@@ -27,7 +27,7 @@ Public: **https://github.com/Chimdalu-Ofoegbu/ephor** (this session builds the c
 | SuccessionPlan | **pending deploy** | — |
 | Guardian2of3 | **pending deploy** | — |
 
-**Deployment is credential-blocked, not code-blocked** (see [BLOCKERS.md](../BLOCKERS.md#blocker-1)). The deploy + verify path is written and compiles; it needs Circle Console credentials + a faucet-funded deployer key (env vars only). Once provided:
+**Deployment is credential-blocked, not code-blocked** (see [BLOCKERS.md](../BLOCKERS.md#blocker-1)). The deploy + verify path is written and compiles; the USDC address is confirmed (`0x3600…0000`) and demo actors are plain EOAs, so it needs only a faucet-funded deployer key (env var). Once funded:
 ```bash
 cd contracts && forge script script/Deploy.s.sol --rpc-url arc_testnet --broadcast --verify
 ```

@@ -13,9 +13,10 @@ Candid notes for Circle DevRel, captured while building. Marked **[actual]** (ex
 - **[anticipated] CCTP v2 domain table.** We hard-coded Arc = domain 26 and Base Sepolia = 6 from the brief. A canonical, versioned domain table in the docs (with testnet TokenMessengerV2 addresses per chain) would remove copy errors.
 - **[anticipated] App Kit Swap from a headless/Node context.** The Swap leg is described for the browser App Kit; a Node/viem recipe for the same swap (for keepers and scripts) would help backend integrations.
 - **[actual] Faucet limits (20/asset/2h/address)** are fine for one demo but tight for seeding a multi-actor demo (operator + 2 successors + vendor + team). A one-shot "fund this set of addresses" faucet mode would speed demo setup.
+- **[actual] Entity Secret registration is a one-shot footgun.** For developer-controlled wallets the recovery file downloads **only once**, during `registerEntitySecretCiphertext`, and there is no reset path without it. A failed file-write *after* the network registration has already succeeded leaves the entity registered-but-locked, with no self-serve recovery even on a test account. Two fixes would help: make registration idempotent (or offer a Console-side reset for test entities), and have the SDK persist the recovery material *before* marking the entity registered. We hit exactly this and moved the demo actors to plain EOAs.
 
 ## Suggestions
 - Publish a minimal **Foundry `foundry.toml` for Arc** (rpc endpoint, verifier config, recommended `evm_version`) as a starter — we reverse-engineered ours.
 - Document the **verifier endpoint** for `forge verify-contract` explicitly (Etherscan-compatible? custom?). This is currently the biggest unknown for our "deployed **and verified**" acceptance criterion.
 
-*(This file will be updated with deploy-time and integration-time findings once credentials are available.)*
+*(Updated 2026-08-02: added the Entity Secret one-shot-registration note; demo actors moved to plain EOAs. More deploy-time findings to follow once the deployer is funded.)*

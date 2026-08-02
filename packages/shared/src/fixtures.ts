@@ -43,7 +43,7 @@ export const ACTORS = {
     design1: A("7ea404"),
     support1: A("7ea405"),
   },
-  usdc: A("36"), // brief: 6-dec USDC on Arc at 0x36…00 (placeholder shape)
+  usdc: A("36"), // 0x3600…0000 — the real 6-dec USDC ERC-20 on Arc (confirmed)
   vault: A("ea17"),
   plan: A("b1a4"),
 } as const;

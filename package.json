@@ -17,7 +17,7 @@
     "contracts:coverage": "forge coverage --root contracts",
     "keeper:dev": "pnpm --filter @ephor/keeper dev",
     "scenario": "pnpm --filter @ephor/keeper scenario",
-    "circle:entity": "pnpm --filter @ephor/scripts register-entity-secret"
+    "wallets:gen": "pnpm --filter @ephor/scripts gen-actors"
   },
   "devDependencies": {
     "typescript": "^5.7.2"

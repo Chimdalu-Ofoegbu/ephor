@@ -3,14 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Ephor operational scripts (Circle developer-controlled-wallet setup, deploy helpers).",
+  "description": "Ephor operational scripts (demo actor EOA wallet generation, deploy helpers).",
   "scripts": {
-    "register-entity-secret": "tsx circle/register-entity-secret.ts",
+    "gen-actors": "tsx wallets/gen-actors.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@circle-fin/developer-controlled-wallets": "^10.8.0",
-    "dotenv": "^16.4.7"
+    "viem": "^2.21.55"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

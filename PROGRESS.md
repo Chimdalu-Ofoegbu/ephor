@@ -4,6 +4,12 @@ Date-stamped, newest first. Format: ✅ [what] — [files].
 
 ---
 
+## 2026-08-02 — Deploy prep: Circle DCW → EOAs; USDC address confirmed
+
+- ✅ **Demo actors switched to plain EOAs (Option A).** Circle developer-controlled wallets dropped — the Entity Secret registration is one-shot and became unrecoverable after a failed recovery-file write (see DX_FEEDBACK.md). Contracts only ever see addresses, so this is functionally equivalent. New generator: `pnpm wallets:gen`. — `scripts/wallets/gen-actors.ts`, `scripts/package.json`, `.env.example`
+- ✅ **USDC address confirmed real** — `0x3600000000000000000000000000000000000000` (native gas token + 6-dec ERC-20 view), verified against the Arc docs. Deploy is no longer blocked on the token address; only a faucet-funded deployer remains. Also pinned USYC Entitlements `0xcc20…6113`. — `.env.example`, `packages/shared/src/addresses.ts`
+- ✅ Removed the Circle entity-secret helper + dependency; repurposed `@ephor/scripts` for EOA wallet generation. — `scripts/`
+
 ## 2026-07-26 — Bootstrap + Phase 0 (Foundation & Provider Contract)
 
 **Environment & safety**
@@ -16,7 +22,7 @@ Date-stamped, newest first. Format: ✅ [what] — [files].
 
 **Monorepo scaffold**
 - ✅ pnpm workspace + TypeScript base config; Foundry project (`solc 0.8.24`, shanghai EVM, fuzz/invariant profiles); OpenZeppelin v5.6.1 + forge-std installed as git submodules; toolchain smoke-tested (`forge test` green on a throwaway contract, since removed). — `package.json`, `pnpm-workspace.yaml`, `tsconfig.base.json`, `contracts/foundry.toml`, `.gitmodules`
-- ✅ `.env.example` complete (Arc + Circle + CCTP + keeper vars); **no secrets in repo**. — `.env.example`
+- ✅ `.env.example` complete (Arc + demo-actor EOA keys + CCTP + keeper vars); **no secrets in repo**. — `.env.example`
 
 **Phase 0 deliverable — the frozen provider contract (unblocks the design session)**
 - ✅ `EphorProvider` interface (11 methods per brief) + `CreatePlanInput` / `CancelResult`. — `packages/shared/src/provider.ts`
@@ -45,6 +51,6 @@ Date-stamped, newest first. Format: ✅ [what] — [files].
 - ✅ End-to-end integration test (`contracts/test/integration/FullStaircase.t.sol`): the full unattended arc — payroll paid in **all four stages**, capped handover with an **on-chain over-cap revert**, and a **conservation-exact terminal sweep** — plus **owner-returns mid-handover** (capped role revoked instantly, payroll uninterrupted) and a sweep-edge rewind. This is the scripted, CI-able version of the two demo money-shots. → **81 tests green, 98.8% line coverage.**
 
 ### Open blockers / next
-- ⛔ **Deploy + verify (addresses)** blocked pending Circle Console credentials (`CIRCLE_API_KEY`, `CIRCLE_ENTITY_SECRET`) + a faucet-funded deployer key + confirmed `USDC_ADDRESS`/verifier — env vars only. Deploy script is written and compiles; see BLOCKERS.md. Everything else is complete and tested offline.
+- ⏳ **Deploy + verify (addresses)** needs only a faucet-funded deployer key — the `USDC_ADDRESS` is confirmed (`0x3600…0000`) and demo actors are plain EOAs (no Circle Console dependency). Deploy script is written and compiles; see BLOCKERS.md. Everything else is complete and tested offline.
 - 📋 **Phase 2–3 (next):** stage-3 multi-leg executor (App Kit Swap + CCTP v2 + USYC park), `LiveEphorProvider` live reads, Slither, scenario drivers 5× clean.
 - 📋 **UI HANDOFF GATE** not yet reached — no `apps/web` touch until Ben confirms the design handoff.

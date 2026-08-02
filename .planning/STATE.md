@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-07-26)
 
 ## Current Position
 
-Phase: 2 of 4 (Continuity Core & Invariant Suite) — code complete, deploy credential-blocked
-Plan: 4 of 5 in current phase (deploy + verify pending credentials)
+Phase: 2 of 4 (Continuity Core & Invariant Suite) — code complete, deploy needs a funded key
+Plan: 4 of 5 in current phase (deploy + verify pending a faucet-funded deployer)
 Status: In progress
-Last activity: 2026-07-26 — 3 contracts + adversarial-review fixes (H-1/M-1/L-1/L-4) + end-to-end staircase integration test; **81 tests (6 invariants + full-arc E2E), 98.8% line cov** green; keeper v1 + scenario driver; docs; repo public + pushed clean (no AI attribution)
+Last activity: 2026-08-02 — demo actors switched to plain EOAs (Circle DCW dropped, Option A); USDC address confirmed `0x3600…0000` so deploy is unblocked except for funding `DEPLOYER_PRIVATE_KEY`; `pnpm wallets:gen` added
 
 Progress: [██████░░░░] ~55%
 
@@ -45,7 +45,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- **Deployment credentials required for "addresses"** — Arc/Circle Console key + Entity Secret are not in the environment. Phase 2 deploy + verify (REQ-01) is blocked until Ben supplies them as env vars. Everything else (contracts, tests, provider, keeper, docs) proceeds without them.
+- **Deploy needs a funded deployer key** — the USDC address is confirmed (`0x3600…0000`) and demo actors are plain EOAs (Circle developer-controlled wallets dropped — see BLOCKERS.md). Phase 2 deploy + verify (REQ-01) unblocks the moment Ben funds `DEPLOYER_PRIVATE_KEY` from the faucet. Everything else (contracts, tests, provider, keeper, docs) proceeds without it.
 - **UI HANDOFF GATE** — no `apps/web` touch until Ben confirms the design handoff (Phase 3).
 
 ## Deferred Items
