@@ -146,6 +146,50 @@ contract EphorExtrasTest is EphorBase {
         vault.claim();
     }
 
+    // ── H-A / INV-6: one unreceivable payee can't brick payroll for the whole team ──
+    // The M-1 escrow pattern, now applied to runPayroll. This is the exact founder-gone failure
+    // mode INV-6 exists to prevent: with no owner left to fix a config, a single blocklisted payee
+    // must not be able to freeze everyone else's wages forever.
+
+    function test_Payroll_NotBrickedByBlockedPayee() public {
+        usdc.setBlocked(team[2], true); // one payee (8k) becomes unable to receive — USDC-style blocklist
+        vm.roll(block.number + PERIOD); // payroll becomes due
+
+        vault.runPayroll(); // must NOT revert — pay the four healthy payees, escrow the blocked one
+
+        // the four receivable payees are paid in full...
+        assertEq(usdc.balanceOf(team[0]), u(10_000));
+        assertEq(usdc.balanceOf(team[1]), u(9_000));
+        assertEq(usdc.balanceOf(team[3]), u(7_000));
+        assertEq(usdc.balanceOf(team[4]), u(6_000));
+        // ...the blocked payee's wage is escrowed, not lost, and did not brick the batch
+        assertEq(usdc.balanceOf(team[2]), 0);
+        assertEq(vault.claimable(team[2]), u(8_000));
+        assertEq(vault.totalClaimable(), u(8_000));
+        // exactly one full period left the reserve, regardless of the escrow
+        assertEq(vault.payrollReserve(), RESERVE - u(40_000));
+
+        // once unblocked, the payee pulls the escrowed wage
+        usdc.setBlocked(team[2], false);
+        vm.prank(team[2]);
+        vault.claim();
+        assertEq(usdc.balanceOf(team[2]), u(8_000));
+        assertEq(vault.claimable(team[2]), 0);
+        assertEq(vault.totalClaimable(), 0);
+    }
+
+    // ── L-A: a wallet can't be added as a successor twice (would double its settlement split) ──
+
+    function test_AddSuccessor_RevertsOnDuplicate() public {
+        ContinuityVault v = new ContinuityVault(owner, usdc, PERIOD, DAILY_WINDOW);
+        address[] memory allow = new address[](0);
+        vm.startPrank(owner);
+        v.addSuccessor(s1, u(25_000), u(50_000), 3000, allow);
+        vm.expectRevert(ContinuityVault.AlreadySuccessor.selector);
+        v.addSuccessor(s1, u(10_000), u(20_000), 1000, allow);
+        vm.stopPrank();
+    }
+
     // ── L-1: the capped successor role closes once the sweep window opens ──
 
     function test_SuccessorPay_ClosedInSweepStage() public {

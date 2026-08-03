@@ -100,6 +100,7 @@ contract ContinuityVault is Ownable, ReentrancyGuard {
     error ConfigNotLocked();
     error NotPlan();
     error NotSuccessor();
+    error AlreadySuccessor();
     error HandoverNotActive();
     error IsFrozen();
     error PayeeNotAllowlisted();
@@ -157,6 +158,9 @@ contract ContinuityVault is Ownable, ReentrancyGuard {
         address[] calldata allowlist
     ) external onlyOwner notLocked {
         if (wallet == address(0)) revert ZeroAddress();
+        // A wallet added twice would receive a double settlement allocation (both entries pay out in
+        // the sweep) while caps track only the last entry — reject re-adds outright.
+        if (successorIndexPlus1[wallet] != 0) revert AlreadySuccessor();
         successors.push(Successor({wallet: wallet, perTxCap: perTxCap, dailyCap: dailyCap, splitBps: splitBps}));
         successorIndexPlus1[wallet] = successors.length; // index + 1
         for (uint256 i = 0; i < allowlist.length; ++i) {
@@ -223,10 +227,15 @@ contract ContinuityVault is Ownable, ReentrancyGuard {
         nextPayrollBlock += payrollPeriodBlocks;
         emit PayrollRun(total, len, nextPayrollBlock);
 
+        // Pull-over-push, identical to the terminal sweep (M-1): a payee that cannot receive (a token
+        // blocklist, or a contract wallet that reverts) is escrowed to `claimable` instead of reverting
+        // the whole batch. One bad payee can NEVER brick payroll for the rest of the team — INV-6 must
+        // hold for the healthy payees even in the founder-gone state, where no owner exists to fix it.
         for (uint256 i = 0; i < len; ++i) {
             Payee memory p = payroll[i];
-            payrollAsset.safeTransfer(p.wallet, p.amountPerPeriod);
-            emit PayrollPaid(p.wallet, p.amountPerPeriod, uint64(block.number));
+            if (_trySendOrEscrow(p.wallet, p.amountPerPeriod)) {
+                emit PayrollPaid(p.wallet, p.amountPerPeriod, uint64(block.number));
+            }
         }
     }
 
@@ -311,15 +320,24 @@ contract ContinuityVault is Ownable, ReentrancyGuard {
     /// @dev Try to push; on failure (e.g. a blocklisted recipient) escrow to a claimable ledger
     ///      so one bad recipient can never brick the whole settlement (M-1).
     function _deliver(address to, uint256 amount) internal {
+        if (_trySendOrEscrow(to, amount)) emit Split(to, amount, false);
+    }
+
+    /// @dev Try to push `amount` of the settlement asset to `to`; on ANY failure (a blocklisted or
+    ///      reverting recipient) credit it to the `claimable` escrow ledger instead of reverting.
+    ///      Returns true iff the transfer was delivered. Shared by the terminal sweep and payroll so
+    ///      that one unreceivable recipient can never brick either batch (M-1 / INV-6). Escrowed funds
+    ///      join `totalClaimable`, which is already protected from successor spend and owner withdraw.
+    function _trySendOrEscrow(address to, uint256 amount) internal returns (bool delivered) {
         (bool success, bytes memory data) =
             address(payrollAsset).call(abi.encodeWithSelector(IERC20.transfer.selector, to, amount));
         if (success && (data.length == 0 || abi.decode(data, (bool)))) {
-            emit Split(to, amount, false);
-        } else {
-            claimable[to] += amount;
-            totalClaimable += amount;
-            emit SettlementEscrowed(to, amount);
+            return true;
         }
+        claimable[to] += amount;
+        totalClaimable += amount;
+        emit SettlementEscrowed(to, amount);
+        return false;
     }
 
     /// @notice Recipients pull any escrowed settlement funds owed to them.
