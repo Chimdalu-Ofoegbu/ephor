@@ -6,8 +6,8 @@
  * All reads are batched into ONE Multicall3 eth_call (Arc has Multicall3 at the canonical
  * address), so a poll is just 2 RPC requests — well under the public RPC's rate limit.
  */
-import { createPublicClient, http, parseAbi, type Address } from "viem";
-import { DEPLOYMENT } from "./config";
+import { createPublicClient, http, parseAbi, parseEventLogs, type Address } from "viem";
+import { DEPLOYMENT, txUrl } from "./config";
 import { ARC_ADDRESSES } from "@ephor/shared/addresses";
 import type {
   EphorSnapshot,
@@ -15,6 +15,7 @@ import type {
   HeartbeatStatus,
   PayrollRecipient,
   PayrollStream,
+  Receipt,
   StageId,
   StageName,
   StageStatus,
@@ -51,8 +52,40 @@ const VAULT_ABI = parseAbi([
 
 const ERC20_ABI = parseAbi(["function balanceOf(address) view returns (uint256)"]);
 
+// Events emitted across the three contracts. Decoded from one getLogs into the activity feed.
+// Enum params (Stage) are uint8 on the wire, so their canonical signatures use uint8.
+const EVENT_ABI = parseAbi([
+  "event Heartbeat(address indexed owner, uint64 atBlock, uint64 deadlineBlock)",
+  "event StageAdvanced(uint8 indexed from, uint8 indexed to, uint64 atBlock)",
+  "event SuccessionCancelled(uint8 indexed fromStage, uint64 atBlock)",
+  "event Frozen(uint64 atBlock)",
+  "event Unfrozen(uint64 atBlock)",
+  "event PayrollPaid(address indexed payee, uint256 amount, uint64 atBlock)",
+  "event SuccessorSpend(address indexed successor, address indexed payee, uint256 amount)",
+  "event Split(address indexed recipient, uint256 amount, bool reserveTopUp)",
+  "event ContinuitySettlementExecuted(uint256 distributable, uint64 atBlock)",
+  "event SettlementEscrowed(address indexed recipient, uint256 amount)",
+  "event GuardianVote(address indexed guardian, bool freeze, uint256 indexed round, uint8 votes)",
+]);
+
 const plan = DEPLOYMENT.plan as Address;
 const vaultAddr = DEPLOYMENT.vault as Address;
+const guardianAddr = DEPLOYMENT.guardian as Address;
+
+// Arc caps eth_getLogs at a 10k-block range (~85 min at ~0.5s/block). A live-driven demo generates
+// its events in real time, so the most recent window is exactly what the feed should show.
+const BLOCK_LOOKBACK = 9000n;
+const MAX_RECEIPTS = 40;
+
+/** 6-dec base units → human dollars, pure-bigint (no float drift). */
+function fmt6(x: bigint): string {
+  const neg = x < 0n;
+  const v = neg ? -x : x;
+  const whole = (v / 1_000_000n).toString();
+  const frac = (v % 1_000_000n).toString().padStart(6, "0").slice(0, 2);
+  return `${neg ? "-" : ""}${whole}.${frac}`;
+}
+const shortAddr = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
 const planCall = (functionName: string, args: unknown[] = []) => ({ address: plan, abi: PLAN_ABI, functionName, args });
 const vaultCall = (functionName: string, args: unknown[] = []) => ({ address: vaultAddr, abi: VAULT_ABI, functionName, args });
@@ -97,6 +130,91 @@ function buildStages(
       summary: summaries[id],
     };
   });
+}
+
+/**
+ * Decode the last ~BLOCK_LOOKBACK blocks of contract events into the activity feed. ONE getLogs
+ * across all three contracts; parseEventLogs drops anything that isn't one of our events. Never
+ * throws — a failed read degrades to an empty feed so the rest of the snapshot still renders.
+ */
+async function buildReceipts(currentBlock: bigint): Promise<Receipt[]> {
+  const fromBlock = currentBlock > BLOCK_LOOKBACK ? currentBlock - BLOCK_LOOKBACK : 0n;
+  const logs = await client
+    .getLogs({ address: [plan, vaultAddr, guardianAddr], fromBlock, toBlock: currentBlock })
+    .catch(() => null);
+  if (!logs) return []; // a failed read degrades to an empty feed; the rest of the snapshot still renders
+  // strict (default) keeps only well-formed logs of OUR events and drops everything else (config/funding noise)
+  const decoded = parseEventLogs({ abi: EVENT_ABI, logs });
+
+  // newest first, tie-broken by logIndex
+  decoded.sort((a, b) => {
+    const bn = (b.blockNumber ?? 0n) - (a.blockNumber ?? 0n);
+    if (bn !== 0n) return bn > 0n ? 1 : -1;
+    return (b.logIndex ?? 0) - (a.logIndex ?? 0);
+  });
+
+  const out: Receipt[] = [];
+  for (const ev of decoded) {
+    if (ev.blockNumber == null || ev.transactionHash == null) continue;
+    const base = {
+      id: `${ev.transactionHash}-${ev.logIndex}`,
+      blockNumber: ev.blockNumber,
+      txHash: ev.transactionHash,
+      explorerUrl: txUrl(ev.transactionHash),
+    };
+    let r: Receipt | null = null;
+    switch (ev.eventName) {
+      case "Heartbeat":
+        r = { ...base, kind: "Heartbeat", from: ev.args.owner, memo: "Owner heartbeat — window reset to Active" };
+        break;
+      case "StageAdvanced": {
+        const to = Number(ev.args.to);
+        if (to === 1) r = { ...base, kind: "ContinuityNotice", stage: 1, memo: "Continuity notice served — challenge window opened" };
+        else if (to === 2) r = { ...base, kind: "HandoverActivated", stage: 2, memo: "Capped handover — a successor gains a limited role" };
+        // to === 3 (Sweep) is surfaced by ContinuitySettlementExecuted, which carries the amount
+        break;
+      }
+      case "SuccessionCancelled":
+        r = { ...base, kind: "StageCancelled", memo: "Owner returned — staircase rewound to Active" };
+        break;
+      case "ContinuitySettlementExecuted":
+        r = { ...base, kind: "SweepExecuted", stage: 3, asset: "USDC", amount: ev.args.distributable, memo: `Terminal settlement — $${fmt6(ev.args.distributable)} distributed` };
+        break;
+      case "PayrollPaid":
+        r = { ...base, kind: "PayrollPaid", asset: "USDC", amount: ev.args.amount, to: ev.args.payee, memo: `Payroll — $${fmt6(ev.args.amount)} to ${shortAddr(ev.args.payee)}` };
+        break;
+      case "SuccessorSpend":
+        r = { ...base, kind: "SuccessorSpend", asset: "USDC", amount: ev.args.amount, from: ev.args.successor, to: ev.args.payee, memo: `Successor spend — $${fmt6(ev.args.amount)} to ${shortAddr(ev.args.payee)}` };
+        break;
+      case "Split":
+        r = {
+          ...base,
+          kind: "Split",
+          asset: "USDC",
+          amount: ev.args.amount,
+          to: ev.args.recipient,
+          memo: ev.args.reserveTopUp
+            ? `Reserve top-up — $${fmt6(ev.args.amount)}`
+            : `Split — $${fmt6(ev.args.amount)} to ${shortAddr(ev.args.recipient)}`,
+        };
+        break;
+      case "SettlementEscrowed":
+        r = { ...base, kind: "Split", asset: "USDC", amount: ev.args.amount, to: ev.args.recipient, memo: `Escrowed for claim — $${fmt6(ev.args.amount)} to ${shortAddr(ev.args.recipient)}` };
+        break;
+      case "Frozen":
+        r = { ...base, kind: "GuardianVeto", memo: "Guardians froze the staircase" };
+        break;
+      case "Unfrozen":
+        r = { ...base, kind: "Unfrozen", memo: "Guardian veto lifted — staircase resumes" };
+        break;
+      case "GuardianVote":
+        r = { ...base, kind: "GuardianVeto", from: ev.args.guardian, memo: `Guardian vote — ${ev.args.freeze ? "freeze" : "unfreeze"} (${Number(ev.args.votes)}/3)` };
+        break;
+    }
+    if (r) out.push(r);
+    if (out.length >= MAX_RECEIPTS) break;
+  }
+  return out;
 }
 
 export async function buildLiveSnapshot(): Promise<EphorSnapshot> {
@@ -218,6 +336,8 @@ export async function buildLiveSnapshot(): Promise<EphorSnapshot> {
     runsDuringSuccession: true,
   };
 
+  const receipts = await buildReceipts(currentBlock);
+
   return {
     vault,
     plan: null,
@@ -225,7 +345,7 @@ export async function buildLiveSnapshot(): Promise<EphorSnapshot> {
     stages: buildStages(stage, currentBlock, [windowBlocks, ...challenge], enteredBlk, swept, nextAdvance),
     successors,
     payroll,
-    receipts: [],
+    receipts,
     balances,
   };
 }

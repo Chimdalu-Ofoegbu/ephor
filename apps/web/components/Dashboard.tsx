@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getScenario, scenarioOrder } from "@ephor/shared/scenarios";
 import type { EphorSnapshot, ScenarioId } from "@ephor/shared/types";
 import { Staircase } from "./Staircase";
@@ -27,6 +27,7 @@ export function Dashboard({ initialMode, deployment }: { initialMode: Mode; depl
   const [liveErr, setLiveErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const inFlight = useRef(false); // synchronous re-entry guard: `busy` state updates a tick too late
 
   const fetchLive = useCallback(async () => {
     try {
@@ -63,6 +64,8 @@ export function Dashboard({ initialMode, deployment }: { initialMode: Mode; depl
         setSid(action === "heartbeat" ? "owner-returns" : action === "advance" ? "stage1-notice" : "stage2-handover");
         return;
       }
+      if (inFlight.current) return; // one tx at a time — two writes from the shared key would collide on nonce
+      inFlight.current = true;
       setBusy(true);
       setMsg(`Sending ${action}…`);
       try {
@@ -81,6 +84,7 @@ export function Dashboard({ initialMode, deployment }: { initialMode: Mode; depl
       } catch (e) {
         setMsg(e instanceof Error ? e.message : String(e));
       } finally {
+        inFlight.current = false;
         setBusy(false);
         setTimeout(() => void fetchLive(), 1200);
       }

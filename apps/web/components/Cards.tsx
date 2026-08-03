@@ -185,17 +185,20 @@ export function BalancesCard({ vault, balances }: { vault: Vault; balances: Toke
 }
 
 const KIND_COLOR: Record<string, string> = {
+  Heartbeat: "text-alive",
   ContinuityNotice: "text-notice",
   HandoverActivated: "text-handover",
   PayrollPaid: "text-alive",
   SuccessorSpend: "text-handover",
   Split: "text-brand",
+  SweepExecuted: "text-sweep",
   Swap: "text-brand",
   CrossChainBurn: "text-brand",
   CrossChainMint: "text-brand",
   YieldPark: "text-brand",
   StageCancelled: "text-alive",
   GuardianVeto: "text-sweep",
+  Unfrozen: "text-alive",
 };
 
 export function ReceiptsCard({ receipts }: { receipts: Receipt[] }) {

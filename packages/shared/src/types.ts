@@ -11,8 +11,10 @@
  *  - Addresses/hashes reuse viem's branded string types so this model drops straight
  *    into a viem/wagmi frontend with no adapters.
  *
- * FROZEN after Phase 0. Changing a type here is a stop-and-ask (it would break the
- * design session, which builds `MockEphorProvider` against exactly these shapes).
+ * Stable since Phase 0. Changing the SHAPE of an existing type is a stop-and-ask — the mock
+ * scenarios and the live provider both render against exactly these fields. Purely additive
+ * extensions are allowed: e.g. `ReceiptKind` gained "Heartbeat"/"SweepExecuted"/"Unfrozen" on
+ * 2026-08-03 so the in-repo dashboard can decode live on-chain events (no existing shape changed).
  */
 import type { Address, Hex } from "viem";
 
@@ -238,17 +240,20 @@ export interface Vault {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type ReceiptKind =
+  | "Heartbeat" // owner checked in — staircase reset to Active
   | "ContinuityNotice" // stage 1 opened
   | "HandoverActivated" // stage 2 opened; successor gains capped role
   | "PayrollPaid" // a payroll period paid
   | "SuccessorSpend" // capped successor paid an allowlisted payee
   | "Split" // stage-3 allocation delivered
+  | "SweepExecuted" // stage-3 terminal settlement executed
   | "Swap" // App Kit Swap conversion leg
   | "CrossChainBurn" // CCTP burn on Arc
   | "CrossChainMint" // CCTP mint on destination chain
   | "YieldPark" // residual parked in USYC (or MockYieldVault)
   | "StageCancelled" // owner returned; staircase rewound
-  | "GuardianVeto"; // guardian froze the staircase
+  | "GuardianVeto" // guardian froze the staircase
+  | "Unfrozen"; // guardian veto lifted; staircase resumes
 
 export interface Receipt {
   id: string;
