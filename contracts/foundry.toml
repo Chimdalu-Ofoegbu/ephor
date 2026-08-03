@@ -40,7 +40,11 @@ depth = 64
 [rpc_endpoints]
 arc_testnet = "${ARC_RPC_URL}"
 
-# Re-enable when Arc exposes an Etherscan-compatible verifier and ARC_VERIFIER_URL is set.
-# An empty `url` here triggers forge's "relative URL without a base" error on --broadcast.
+# Source-verification is done out-of-band against arcscan (Blockscout), which needs no API key:
+#   forge verify-contract <addr> src/<C>.sol:<C> --verifier blockscout \
+#     --verifier-url https://testnet.arcscan.app/api/ --compiler-version 0.8.24 \
+#     --num-of-optimizations 200 --constructor-args <abi-encoded>
+# The [etherscan] block stays disabled: an empty `url` here trips forge's "relative URL without a
+# base" error on --broadcast, and the Blockscout flags above cover verification cleanly.
 # [etherscan]
 # arc_testnet = { key = "${ARC_ETHERSCAN_API_KEY}", url = "${ARC_VERIFIER_URL}", chain = 5042002 }

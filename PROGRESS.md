@@ -4,6 +4,13 @@ Date-stamped, newest first. Format: ✅ [what] — [files].
 
 ---
 
+## 2026-08-03 — Hardening pass: source-verified, INV-6 fix, live activity feed
+
+- ✅ **All three contracts source-verified on arcscan** (Blockscout v11.2.3) — `SuccessionPlan`, `ContinuityVault`, `Guardian2of3` now expose verified Solidity + ABI on the explorer. Closes the last open acceptance criterion ("deployed **and** verified"); no Etherscan key needed. Recipe: `forge verify-contract <addr> <path>:<name> --verifier blockscout --verifier-url https://testnet.arcscan.app/api/ …`. — `docs/DX_FEEDBACK.md`
+- ✅ **Second adversarial review (contracts + web/scripts).** Fixed **H-A** — `runPayroll` was all-or-nothing, so one non-receiving payee (token blocklist / reverting wallet) could permanently brick the whole team's payroll in the founder-gone state, defeating INV-6 exactly where it's supposed to hold; payroll now shares the sweep's escrow-on-failure path (`_trySendOrEscrow`). Fixed **L-A** (duplicate-successor guard). The web review audited the deployer key **server-only / never in the client bundle**, `.env` untracked, zero committed secrets. → **83 tests green** (+2). — `contracts/src/ContinuityVault.sol`, `contracts/test/EphorExtras.t.sol`, `docs/REVIEW.md`, `docs/SECURITY.md`
+- ✅ **Live activity feed** — the dashboard decodes on-chain events (Heartbeat / StageAdvanced / PayrollPaid / SuccessorSpend / Split / settlement / guardian) via one `getLogs` over the recent window into the receipts panel; verified end-to-end (drove a live heartbeat → the feed lit up, state flipped healthy). Plus two web hardenings from the review: an `act()` re-entry guard (shared-key nonce race) and a strict `$bigint:` parse. — `apps/web/lib/live.ts`, `apps/web/components/Dashboard.tsx`, `apps/web/lib/serial.ts`, `packages/shared/src/types.ts`
+- 📋 **Stage-3 legs assessed (fact-checked on-chain):** EURC (1.8 KB) + CCTP TokenMessenger (2.2 KB) are real contracts on Arc; USYC token/teller/entitlements are identical 183-byte minimal proxies of uncertain functionality. A live multi-leg executor is a scoped follow-up (verify the swap router + liquidity, CCTP attestation relay, and USYC entitlements first); the legs stay modeled in the data layer + shown in the mock walkthrough.
+
 ## 2026-08-03 — Demo dashboard (mock + live) — apps/web
 
 - ✅ **Next.js dashboard** rendering the vault two ways from one component tree: **mock** (the six `@ephor/shared` scenarios, deterministic walkthrough) and **live** (server-side reads of the deployed Arc contracts via a single Multicall3 `eth_call`, polling every 3s). Heartbeat countdown, the staircase, payroll-never-misses, successor caps, treasury, activity feed. — `apps/web/`

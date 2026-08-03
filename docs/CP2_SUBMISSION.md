@@ -5,7 +5,7 @@
 CP2 asks for **repo + progress + addresses.**
 
 ## Repo
-Public: **https://github.com/Chimdalu-Ofoegbu/ephor** (this session builds the contracts + backend; a parallel session builds the interface).
+Public: **https://github.com/Chimdalu-Ofoegbu/ephor** — a pnpm + Foundry monorepo: contracts, keeper, the shared provider seam, scripts, and the demo dashboard (`apps/web`).
 
 ## Progress
 
@@ -13,7 +13,7 @@ Public: **https://github.com/Chimdalu-Ofoegbu/ephor** (this session builds the c
 - ✅ pnpm + Foundry monorepo; OpenZeppelin v5.6.1; clean module boundaries for the later Zygos merge.
 - ✅ **Frozen `EphorProvider` interface + six deterministic scenarios** (`packages/shared`) — typechecks; unblocks the design session's `MockEphorProvider` and the `mock↔live` swap.
 - ✅ **Three contracts** — `ContinuityVault`, `SuccessionPlan`, `Guardian2of3` (Solidity 0.8.24; CEI, `nonReentrant`, SafeERC20, custom errors, events on every transition, 6-dec, block-count windows, caps in the vault).
-- ✅ **73 Foundry tests** — unit + fuzz + **7 stateful invariants covering all six named invariants** (256×32 each, 0 reverts, 0 violations). **98.7% line coverage.** Gas snapshots committed.
+- ✅ **83 Foundry tests** — unit + fuzz + **7 stateful invariants covering all six named invariants** (256×32 each, 0 reverts, 0 violations). **~98.8% line coverage.** Gas snapshots committed.
 - ✅ Deploy + SeedDemo scripts; keeper v1 skeleton (idempotent, permissionless advance + payroll driver; runs the six scenarios headlessly).
 - ✅ Docs: THREAT_MODEL, SECURITY, METRICS, DX_FEEDBACK, BLOCKERS, `.env.example` (no secrets in git).
 
@@ -27,7 +27,7 @@ Public: **https://github.com/Chimdalu-Ofoegbu/ephor** (this session builds the c
 | SuccessionPlan | `0x01FcB61253f8E0dE8f0455dDe6CBd36882ad3bf8` | [view](https://testnet.arcscan.app/address/0x01FcB61253f8E0dE8f0455dDe6CBd36882ad3bf8) |
 | Guardian2of3 | `0x52e003799cCB3B0BFc8Bcd227112F1Ffe9bc506d` | [view](https://testnet.arcscan.app/address/0x52e003799cCB3B0BFc8Bcd227112F1Ffe9bc506d) |
 
-**Deployed and wired on Arc testnet** (chain 5042002, from `0x7dbF…Ac2C`). Verified on-chain via `cast call`: `plan`↔`vault` cross-linked, `Guardian2of3` linked (2-of-3), owner = deployer, stage = Active, settlement asset = USDC `0x3600…0000`. Source-verification pending Arc's verifier endpoint. Reproduce with:
+**Deployed and wired on Arc testnet** (chain 5042002, from `0x7dbF…Ac2C`). Verified on-chain via `cast call`: `plan`↔`vault` cross-linked, `Guardian2of3` linked (2-of-3), owner = deployer, stage = Active, settlement asset = USDC `0x3600…0000`. **All three contracts are source-verified on arcscan** (Blockscout) — the verified Solidity is readable at the explorer links above. Reproduce the deploy with:
 ```bash
 cd contracts && forge script script/Deploy.s.sol --rpc-url arc_testnet --broadcast
 ```
@@ -36,7 +36,7 @@ cd contracts && forge script script/Deploy.s.sol --rpc-url arc_testnet --broadca
 ```bash
 pnpm install
 pnpm --filter @ephor/shared typecheck   # provider + six scenarios
-pnpm contracts:test                      # 81 tests: unit + fuzz + 6 invariants + end-to-end
+pnpm contracts:test                      # 83 tests: unit + fuzz + 6 invariants + end-to-end
 pnpm contracts:coverage                  # ~98.7% lines
 pnpm --filter @ephor/keeper scenario     # prints the six demo beats
 pnpm --filter @ephor/web dev             # dashboard at :3000 (mock; toggle Live · Arc)
@@ -51,9 +51,9 @@ INV-1 owner-supremacy · INV-2 stage monotonicity · INV-3 no early execution ·
 1. **The founder goes silent — payroll never misses.** `test_PayrollContinuity_*` + `invariant_PayrollContinuity`.
 2. **The founder returns — one heartbeat rewinds the staircase.** `test_HeartbeatCancelsFrom*` + `testFuzz_OwnerSupremacyAnyOrdering` + `invariant_OwnerSupremacy`.
 
-## What's next (per the dated plan)
-- Phase 2–3 (Jul 27–Aug 2): live deploy + verify (unblock addresses), stage-3 multi-leg executor (Swap + CCTP + USYC), `LiveEphorProvider` headless, Slither, **UI HANDOFF GATE**.
-- Phase 3 (Aug 3–8): scenario drivers 5× clean, README addresses + Mermaid, support video, submit Aug 8.
+## What's next
+- ✅ **Done since CP2:** live deploy + wiring, seed, full live succession run, **source-verification on arcscan**, and the **mock + live demo dashboard** with an on-chain activity feed. A post-deploy security sweep fixed one High (payroll-brick / INV-6) + one Low and audited the web key-handling clean.
+- 📋 **Scoped follow-ups:** the stage-3 multi-leg executor (App Kit Swap + CCTP v2 + USYC) — modeled in the data layer and shown in the mock walkthrough; a live on-chain version depends on external Arc testnet infra to verify first (swap router + liquidity, CCTP attestation relay, USYC entitlements). Also: Slither, and recording the demo video.
 
-## Division of labor
-This repo = `contracts/`, `apps/keeper`, `packages/shared`, `scripts/`, `docs/`. **`apps/web` / `packages/ui` are owned by a separate design session** and are intentionally absent until the recorded UI handoff. Zero stray diffs there.
+## Repo contents
+`contracts/` (Foundry), `apps/web` (the demo dashboard), `apps/keeper`, `packages/shared` (the frozen provider seam), `scripts/`, `docs/`. One monorepo; the dashboard renders the same `EphorProvider` seam the keeper and scenarios use.

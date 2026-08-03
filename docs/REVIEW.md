@@ -39,6 +39,26 @@ Post-fix: **81 tests green** (incl. the end-to-end staircase suite), 98.8% line 
 
 ---
 
+## Second review (2026-08-03) — post-deployment sweep
+
+A fresh adversarial pass after the live deployment, now covering the web/scripts surface too. The prior H-1/M-1/L-1/L-4 fixes were re-verified **present and complete**. One new High and one new Low were found and fixed; the web key-handling audited clean; the rest documented.
+
+| Finding | Severity | Status | Fix / disposition |
+|---|---|---|---|
+| **H-A** payroll brick | High | ✅ Fixed | `runPayroll` was all-or-nothing push, so one non-receiving payee (token blocklist / reverting wallet) bricked the **entire** batch, permanently, in the founder-gone state — defeating INV-6 exactly where it matters most. M-1's escrow was applied to the sweep but never to payroll. Both now share `_trySendOrEscrow`: a failing payee is escrowed to `claimable` and the healthy payees are still paid. Test: `test_Payroll_NotBrickedByBlockedPayee`. |
+| **L-A** duplicate successor | Low | ✅ Fixed | `addSuccessor` had no duplicate guard — a wallet added twice received a doubled settlement split while caps tracked only the last entry. Now reverts `AlreadySuccessor`. Test: `test_AddSuccessor_RevertsOnDuplicate`. |
+| **web-M** nonce race | Medium | ✅ Fixed | Dashboard `act()` could fire two writes from the shared deployer key on a fast double-click → nonce collision / dropped action. Added a synchronous `inFlight` re-entry guard. (Operational note: don't point the keeper at the same key that drives the UI.) |
+| **web-L** `$bigint:` parse | Low | ✅ Fixed | `serial.parse` now coerces only a strictly-formed `^\$bigint:-?\d+$` tag, so a legitimate string with that prefix survives and a malformed suffix can't throw inside `JSON.parse`. |
+| **L-B** successor runway | Low | 📋 Accepted | Capped successor spend lasts the whole Handover (permissionless advance isn't automatic). Still cap- and reserve-bounded; owner heartbeat or a guardian freeze ends it. A max-Handover-duration is a future hardening. |
+| **L-C** guardian round liveness | Low | 📋 Accepted | A 1-1 vote split with the third guardian absent can strand a round; a `plan.guardian` mismatch makes `vote()` inert. Neither breaks the one-compromise tolerance; both are operational (alert if `plan.guardian != guardian`). |
+| **key-exposure audit** | — | ✅ Clean | `DEPLOYER_PRIVATE_KEY` is server-only (route handlers + `next.config.mjs` server-side load); no `NEXT_PUBLIC_*` or client import path reaches it; `.env` is untracked; zero committed secrets across all tracked files. |
+
+Post-fix: **83 tests green** (added the two above), all six invariants still hold; the three deployed contracts are source-verified on arcscan (Blockscout).
+
+INFO (owner-misconfig hardening, not fixed): a successor wallet equal to the vault address self-transfers its split (stranding it); `successors`/`allocations` are unbounded (gas-limit risk at absurd sizes). Both are config-time footguns under sole owner control — candidates for zero/self checks and a length cap in a later pass.
+
+---
+
 ## HIGH
 
 ### H-1 — A single guardian can veto/DoS the 2-of-3 freeze by voting first in the opposite direction (breaks T10 one-compromised-guardian tolerance)

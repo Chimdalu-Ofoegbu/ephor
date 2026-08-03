@@ -51,7 +51,7 @@ flowchart TD
 
 ## Repository layout
 
-This repo is a pnpm + Foundry monorepo. **This is the contracts + backend half.** The interface (`apps/web`, `packages/ui`) is built by a separate, parallel session and is intentionally absent here until the UI handoff.
+This repo is a pnpm + Foundry monorepo — contracts, keeper, the shared provider seam, scripts, and the **demo dashboard** (`apps/web`).
 
 ```
 contracts/            Foundry · Solidity 0.8.24
@@ -59,6 +59,7 @@ contracts/            Foundry · Solidity 0.8.24
     ContinuityVault.sol    funds; roles (owner, capped successor); payroll reserve + pulls; guardian-pausable
     SuccessionPlan.sol     plan config; heartbeat registry; monotonic cancellable stage machine; stage-3 executor
     Guardian2of3.sol       veto multisig + key-rotation authority
+apps/web/             Next.js · the mock + live demo dashboard (reads Arc, drives owner-signed actions)
 apps/keeper/          TS · watches windows, advances/executes idempotently, drives payroll, indexes events
 packages/shared/      TS · EphorProvider interface, domain types, viem clients, Arc addresses, six scenarios
 scripts/              deploy, seed demo company, fund wallets, scenario drivers, verify-receipts
@@ -74,12 +75,13 @@ docs/                 THREAT_MODEL, SECURITY, METRICS, CP2_SUBMISSION, INTEGRATI
 | Repo + GSD planning spine (PROJECT / ROADMAP / STATE / REQUIREMENTS) | ✅ |
 | Monorepo scaffold (pnpm + Foundry + OpenZeppelin) | ✅ |
 | **Phase 0** — `EphorProvider` interface + domain types + **six scenarios** (typechecks; unblocks design) | ✅ |
-| **Phase 1** — `ContinuityVault` · `SuccessionPlan` · `Guardian2of3` + **81 tests / 6 invariants + end-to-end arc / 98.8% line cov** | ✅ |
+| **Phase 1** — `ContinuityVault` · `SuccessionPlan` · `Guardian2of3` + **83 tests / 6 invariants + end-to-end arc / ~98.8% line cov** | ✅ |
 | Keeper v1 skeleton (idempotent advance + payroll; runs six scenarios headlessly) | ✅ |
-| Deploy on Arc testnet (addresses below) | ✅ **3 contracts live + wired** (source-verify pending Arc verifier) |
+| Deploy on Arc testnet (addresses below) | ✅ **3 contracts live + wired + source-verified on arcscan** |
 | Live succession run (heartbeat → advance → payroll → capped spend → rewind) | ✅ proven on-chain (`scripts/run-demo-arc.sh`) |
-| **Demo dashboard** (`apps/web`) — mock walkthrough + live Arc reads + owner controls | ✅ |
-| Stage-3 multi-leg executor (Swap · CCTP · USYC) · Slither | 📋 next |
+| **Demo dashboard** (`apps/web`) — mock walkthrough + live Arc reads + owner controls + live activity feed | ✅ |
+| Stage-3 legs (Swap · CCTP · USYC) | 📋 modeled in the data layer + shown in the mock walkthrough; a live on-chain executor is a scoped follow-up (external infra to verify — see below) |
+| Slither static analysis | 📋 next |
 
 See [`PROGRESS.md`](PROGRESS.md) for the date-stamped log and [`.planning/ROADMAP.md`](.planning/ROADMAP.md) for the full plan.
 
@@ -105,7 +107,7 @@ pnpm --filter @ephor/web dev     # http://localhost:3000  (mock by default)
 One component tree, two data modes:
 
 - **Mock** — the six scripted scenarios (`healthy → silence → notice → handover → sweep → rewind`), deterministic and offline. The narrated walkthrough.
-- **Live** — toggle **Live · Arc** to read the deployed contracts (one Multicall3 `eth_call`, polling every 3s) and drive **owner-signed** heartbeat / advance / payroll straight from the browser. The signing key is read server-side from the root `.env` and never reaches the client. Boot into it with `NEXT_PUBLIC_DATA_MODE=live`.
+- **Live** — toggle **Live · Arc** to read the deployed contracts (one Multicall3 `eth_call`, polling every 3s) and drive **owner-signed** heartbeat / advance / payroll straight from the browser. A **live activity feed** decodes on-chain events (one `getLogs` over the recent window) into receipts, so the staircase lights up as you drive it. The signing key is read server-side from the root `.env` and never reaches the client. Boot into it with `NEXT_PUBLIC_DATA_MODE=live`.
 
 ## Deployment (Arc testnet)
 
@@ -115,7 +117,7 @@ One component tree, two data modes:
 | SuccessionPlan | `0x01FcB61253f8E0dE8f0455dDe6CBd36882ad3bf8` | [view](https://testnet.arcscan.app/address/0x01FcB61253f8E0dE8f0455dDe6CBd36882ad3bf8) |
 | Guardian2of3 | `0x52e003799cCB3B0BFc8Bcd227112F1Ffe9bc506d` | [view](https://testnet.arcscan.app/address/0x52e003799cCB3B0BFc8Bcd227112F1Ffe9bc506d) |
 
-> **Live on Arc testnet** (chain **5042002**), deployed from `0x7dbF…Ac2C` and verified on-chain: owner-wired, `plan`↔`vault` cross-linked, `Guardian2of3` (2-of-3) linked, stage = Active. Settlement asset is USDC `0x3600…0000` (native gas token + 6-dec ERC-20 view). RPC `https://rpc.testnet.arc.network` · explorer `https://testnet.arcscan.app` · faucet `https://faucet.circle.com`. Source-verification is pending Arc's verifier endpoint (bytecode is confirmed on-chain via `cast code`).
+> **Live on Arc testnet** (chain **5042002**), deployed from `0x7dbF…Ac2C` and verified on-chain: owner-wired, `plan`↔`vault` cross-linked, `Guardian2of3` (2-of-3) linked, stage = Active. Settlement asset is USDC `0x3600…0000` (native gas token + 6-dec ERC-20 view). RPC `https://rpc.testnet.arc.network` · explorer `https://testnet.arcscan.app` · faucet `https://faucet.circle.com`. **All three contracts are source-verified on arcscan** (Blockscout) — click any address above to read the verified Solidity. Reproduce with `forge verify-contract <addr> <path>:<name> --verifier blockscout --verifier-url https://testnet.arcscan.app/api/ --compiler-version 0.8.24 --num-of-optimizations 200 --constructor-args <abi-encoded>`.
 
 ## Arc primitives used
 

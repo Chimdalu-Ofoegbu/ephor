@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-07-26)
 
 **Core value:** The owner's live key always wins — one heartbeat cancels the whole staircase; and payroll never misses a beat.
-**Current focus:** Phase 3 — demo surface complete (deployed + seeded + live dashboard); next: stage-3 legs / recording
+**Current focus:** Phase 3 — deployed + seeded + **source-verified** + live dashboard (with on-chain activity feed) + post-deploy security sweep all done; next: stage-3 legs (scoped) / recording
 
 ## Current Position
 
-Phase: 2 of 4 (Continuity Core & Invariant Suite) — deployed to Arc testnet
-Plan: 5 of 5 (deploy + verify) — deployed, wired, seeded, and PROVEN LIVE end-to-end; source-verify pending Arc verifier
+Phase: 2 of 4 (Continuity Core & Invariant Suite) — deployed + source-verified on Arc testnet
+Plan: 5 of 5 (deploy + verify) — deployed, wired, seeded, PROVEN LIVE end-to-end, and **source-verified on arcscan** (Blockscout). Deploy+verify plan complete.
 Status: In progress
-Last activity: 2026-08-03 — built the apps/web demo dashboard (mock scenarios + live Arc reads via one Multicall3 call + owner-signed heartbeat/advance/payroll from the browser); typechecks + renders clean. Earlier today: full live succession run (INV-1/2/3/5/6 on-chain) via scripts/run-demo-arc.sh
+Last activity: 2026-08-03 — hardening pass: source-verified all 3 contracts on arcscan; second adversarial review fixed H-A (payroll-brick / INV-6) + L-A (dup successor) → 83 tests green; added the live activity feed (event-decoded receipts, verified end-to-end) + two web hardenings. Stage-3 legs assessed (external infra fact-checked). Earlier: apps/web dashboard; full live succession run.
 
-Progress: [█████████░] ~85%
+Progress: [█████████▓] ~92%
 
 ## Performance Metrics
 
@@ -45,8 +45,9 @@ None yet.
 
 ### Blockers/Concerns
 
-- **Deployed to Arc testnet (2026-08-02)** — SuccessionPlan / ContinuityVault / Guardian2of3 live + wired; addresses in README. REQ-01 substantially met; only source-verification remains (pending Arc's verifier endpoint — bytecode + wiring confirmed on-chain).
-- **UI HANDOFF GATE** — no `apps/web` touch until Ben confirms the design handoff (Phase 3).
+- **Deployed + source-verified on Arc testnet** — SuccessionPlan / ContinuityVault / Guardian2of3 live, wired, and **verified on arcscan** (Blockscout). REQ-01 fully met (deployed **and** verified). No open blockers here.
+- **UI handoff gate lifted** — `apps/web` dashboard built in-repo (mock + live + activity feed); Ben approved the fresh design.
+- **Divergence note:** repo `main` now contains the H-A payroll-brick fix; the *deployed* (and verified) bytecode is the pre-fix version. Redeploying the hardened contracts (fresh addresses + re-seed + re-verify) is a pending decision for Ben — the live demo currently runs the verified pre-fix contracts.
 
 ## Deferred Items
 
