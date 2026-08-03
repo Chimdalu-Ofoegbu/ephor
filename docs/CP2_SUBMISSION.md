@@ -39,6 +39,7 @@ pnpm --filter @ephor/shared typecheck   # provider + six scenarios
 pnpm contracts:test                      # 81 tests: unit + fuzz + 6 invariants + end-to-end
 pnpm contracts:coverage                  # ~98.7% lines
 pnpm --filter @ephor/keeper scenario     # prints the six demo beats
+pnpm --filter @ephor/web dev             # dashboard at :3000 (mock; toggle Live · Arc)
 ```
 
 ## Named invariants — all proven

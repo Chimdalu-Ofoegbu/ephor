@@ -4,6 +4,12 @@ Date-stamped, newest first. Format: ✅ [what] — [files].
 
 ---
 
+## 2026-08-03 — Demo dashboard (mock + live) — apps/web
+
+- ✅ **Next.js dashboard** rendering the vault two ways from one component tree: **mock** (the six `@ephor/shared` scenarios, deterministic walkthrough) and **live** (server-side reads of the deployed Arc contracts via a single Multicall3 `eth_call`, polling every 3s). Heartbeat countdown, the staircase, payroll-never-misses, successor caps, treasury, activity feed. — `apps/web/`
+- ✅ **Interactive live controls** — owner-signed heartbeat / advance / payroll from the browser via `/api/action` (key read server-side from the root `.env`, never sent to the client). Verified end-to-end: browser click → Arc tx → live state flips (heartbeat → healthy). — `apps/web/app/api/`
+- ✅ Typechecks clean; renders with no console errors. UI handoff gate lifted by Ben (fresh design, no external mockup). — `apps/web/README.md`
+
 ## 2026-08-03 — Live succession proven end-to-end on Arc
 
 - ✅ **Full staircase driven live on the deployed vault** (rewind path), proving the invariants on-chain: INV-3 early `advanceStage` reverts (WindowNotLapsed) → INV-2 Active→Notice→Handover as each block window lapses → INV-6 `runPayroll` pays 1 USDC mid-succession (reserve 6→5) → INV-5 successor pays vendor 1.5 USDC (per-tx cap 2) and an over-cap 2.5 USDC spend reverts (PerTxCapExceeded) → INV-1 owner `heartbeat` rewinds Handover→Active in one call. Non-destructive; vault left healthy (reserve 5, distributable 2.5). One-command reusable driver for the recorded demo. — `scripts/run-demo-arc.sh`

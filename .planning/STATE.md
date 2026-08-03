@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-07-26)
 
 **Core value:** The owner's live key always wins — one heartbeat cancels the whole staircase; and payroll never misses a beat.
-**Current focus:** Phase 2 — Continuity Core; deployed to Arc, next is SeedDemo + live provider
+**Current focus:** Phase 3 — demo surface complete (deployed + seeded + live dashboard); next: stage-3 legs / recording
 
 ## Current Position
 
 Phase: 2 of 4 (Continuity Core & Invariant Suite) — deployed to Arc testnet
 Plan: 5 of 5 (deploy + verify) — deployed, wired, seeded, and PROVEN LIVE end-to-end; source-verify pending Arc verifier
 Status: In progress
-Last activity: 2026-08-03 — drove the full succession staircase live on Arc (rewind path): INV-3/2/6/5/1 all proven on-chain — early-advance revert, staged advance, payroll paid mid-succession, capped + over-cap-rejected successor spend, one-heartbeat rewind. Reusable driver: scripts/run-demo-arc.sh
+Last activity: 2026-08-03 — built the apps/web demo dashboard (mock scenarios + live Arc reads via one Multicall3 call + owner-signed heartbeat/advance/payroll from the browser); typechecks + renders clean. Earlier today: full live succession run (INV-1/2/3/5/6 on-chain) via scripts/run-demo-arc.sh
 
-Progress: [████████░░] ~78%
+Progress: [█████████░] ~85%
 
 ## Performance Metrics
 

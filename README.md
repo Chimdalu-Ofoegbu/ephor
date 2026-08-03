@@ -65,7 +65,7 @@ scripts/              deploy, seed demo company, fund wallets, scenario drivers,
 docs/                 THREAT_MODEL, SECURITY, METRICS, CP2_SUBMISSION, INTEGRATION, DX_FEEDBACK
 ```
 
-`packages/shared` exposes the **frozen** `EphorProvider` seam. The design session builds `MockEphorProvider` (deterministic fixtures + six one-keypress scenarios); this session ships `LiveEphorProvider`. Swapping mock↔live is a `DATA_MODE` flip with zero component changes.
+`packages/shared` exposes the **frozen** `EphorProvider` seam. The **[dashboard](apps/web)** renders it two ways: **mock** (the six deterministic `@ephor/shared` scenarios) and **live** (server-side reads of the deployed Arc contracts via one Multicall3 call, plus owner-signed heartbeat/advance/payroll from the browser). Swapping mock↔live is a `DATA_MODE` flip with zero component changes.
 
 ## Status — CP2 (Jul 26)
 
@@ -77,7 +77,9 @@ docs/                 THREAT_MODEL, SECURITY, METRICS, CP2_SUBMISSION, INTEGRATI
 | **Phase 1** — `ContinuityVault` · `SuccessionPlan` · `Guardian2of3` + **81 tests / 6 invariants + end-to-end arc / 98.8% line cov** | ✅ |
 | Keeper v1 skeleton (idempotent advance + payroll; runs six scenarios headlessly) | ✅ |
 | Deploy on Arc testnet (addresses below) | ✅ **3 contracts live + wired** (source-verify pending Arc verifier) |
-| Stage-3 multi-leg executor (Swap · CCTP · USYC) · live provider · Slither | 📋 Phase 2–3 |
+| Live succession run (heartbeat → advance → payroll → capped spend → rewind) | ✅ proven on-chain (`scripts/run-demo-arc.sh`) |
+| **Demo dashboard** (`apps/web`) — mock walkthrough + live Arc reads + owner controls | ✅ |
+| Stage-3 multi-leg executor (Swap · CCTP · USYC) · Slither | 📋 next |
 
 See [`PROGRESS.md`](PROGRESS.md) for the date-stamped log and [`.planning/ROADMAP.md`](.planning/ROADMAP.md) for the full plan.
 
@@ -93,6 +95,17 @@ pnpm contracts:test                      # forge test (unit + fuzz + invariants)
 ```
 
 Copy `.env.example` → `.env` and fill in values before any deploy. **Testnet only. Never a mainnet key. No secrets in git.**
+
+## Demo dashboard (`apps/web`)
+
+```bash
+pnpm --filter @ephor/web dev     # http://localhost:3000  (mock by default)
+```
+
+One component tree, two data modes:
+
+- **Mock** — the six scripted scenarios (`healthy → silence → notice → handover → sweep → rewind`), deterministic and offline. The narrated walkthrough.
+- **Live** — toggle **Live · Arc** to read the deployed contracts (one Multicall3 `eth_call`, polling every 3s) and drive **owner-signed** heartbeat / advance / payroll straight from the browser. The signing key is read server-side from the root `.env` and never reaches the client. Boot into it with `NEXT_PUBLIC_DATA_MODE=live`.
 
 ## Deployment (Arc testnet)
 
